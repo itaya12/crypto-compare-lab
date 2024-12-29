@@ -23,16 +23,25 @@ const Index = () => {
     queryFn: fetchTopCoins,
   });
 
-  const queries = [...selectedCoins, ...additionalCoins].map((coin, index) => {
-    const coinId = coin?.id;
-    return useQuery({
-      queryKey: ["coinHistory", coinId, startDate, endDate],
-      queryFn: () => fetchCoinHistory(coinId || "", startDate.getTime(), endDate.getTime()),
-      enabled: !!coinId,
-    });
+  // Create a stable array of coin IDs
+  const allCoinIds = [...selectedCoins, ...additionalCoins].map(coin => coin?.id || null);
+  
+  // Create a single query for all coin histories
+  const coinHistoryQueries = useQuery({
+    queryKey: ["coinHistories", allCoinIds, startDate, endDate],
+    queryFn: async () => {
+      const histories = await Promise.all(
+        allCoinIds.map(async (coinId) => {
+          if (!coinId) return [];
+          return fetchCoinHistory(coinId, startDate.getTime(), endDate.getTime());
+        })
+      );
+      return histories;
+    },
+    enabled: allCoinIds.some(id => id !== null),
   });
 
-  const coinsHistory = queries.map(query => query.data || []);
+  const coinsHistory = coinHistoryQueries.data || [];
 
   useEffect(() => {
     if (coins.length > 0) {
@@ -81,15 +90,6 @@ const Index = () => {
     setAdditionalCoins([]);
     setShowComparison(true);
   };
-
-  const chartTypes = [
-    "line",
-    "candlestick",
-    "bar",
-    "pie",
-    "area",
-    "radar"
-  ] as const;
 
   return (
     <div className="min-h-screen p-6 md:p-8 space-y-8 max-w-7xl mx-auto">
@@ -172,13 +172,13 @@ const Index = () => {
 
           {selectedCoins.every(coin => coin) && (
             <div className="space-y-24">
-              {chartTypes.map((chartType) => (
+              {["line", "candlestick", "bar", "pie", "area", "radar"].map((chartType) => (
                 <div key={chartType} className="scroll-mt-8" id={chartType}>
                   <h2 className="text-2xl font-bold mb-6 capitalize">{chartType} Chart</h2>
                   <ComparisonChart
                     coinsData={coinsHistory}
                     coinSymbols={selectedCoins.map(coin => coin?.symbol || "")}
-                    defaultChartType={chartType}
+                    defaultChartType={chartType as any}
                   />
                 </div>
               ))}
