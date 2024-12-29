@@ -114,7 +114,7 @@ export const SingleCoinPriceChart = ({
   };
 
   return (
-    <div className="w-full h-[400px] glass-card p-6 hover:border-crypto-accent/50 transition-colors duration-300">
+    <div className="w-full h-[600px] glass-card p-6 hover:border-crypto-accent/50 transition-colors duration-300">
       <div className="flex items-center justify-between mb-4">
         <div className="space-y-1">
           <h3 className="text-lg font-semibold">{coinSymbol} Price</h3>
