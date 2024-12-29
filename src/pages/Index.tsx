@@ -3,7 +3,6 @@ import { useQuery } from "@tanstack/react-query";
 import { Coin, fetchTopCoins, fetchCoinHistory } from "@/services/api";
 import { CoinSelector } from "@/components/CoinSelector";
 import { CoinStats } from "@/components/CoinStats";
-import { GeneralTableDescription } from "@/components/GeneralTableDescription";
 import { ChartSection } from "@/components/ChartSection";
 import { Share2, Plus, X, Calendar } from "lucide-react";
 import { toast } from "sonner";
@@ -216,8 +215,8 @@ const Index = () => {
               <ChartSection
                 coinsHistory={coinsHistory}
                 coinSymbols={selectedCoins.map(coin => coin?.symbol || "")}
+                coins={selectedCoins.filter((coin): coin is Coin => coin !== null)}
               />
-              <GeneralTableDescription coins={selectedCoins.filter((coin): coin is Coin => coin !== null)} />
             </div>
           )}
         </div>
