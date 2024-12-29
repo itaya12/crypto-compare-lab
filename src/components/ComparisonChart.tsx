@@ -13,6 +13,7 @@ import { PieChart } from "./charts/PieChart";
 import { TradingVolumePieChart } from "./charts/TradingVolumePieChart";
 import { RadarChart } from "./charts/RadarChart";
 import { AreaChart } from "./charts/AreaChart";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface ComparisonChartProps {
   coinsData: CoinHistory[][];
@@ -35,6 +36,7 @@ export const ComparisonChart = ({
   defaultChartType = "line",
 }: ComparisonChartProps) => {
   const [chartType, setChartType] = useState<"line" | "pie" | "radar" | "area">(defaultChartType);
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     setChartType(defaultChartType);
@@ -69,47 +71,59 @@ export const ComparisonChart = ({
     switch (chartType) {
       case "pie":
         return (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <PieChart
-              coinsData={coinsData}
-              coinSymbols={coinSymbols}
-            />
-            <TradingVolumePieChart
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+            <div className="min-h-[300px] md:min-h-[400px]">
+              <PieChart
+                coinsData={coinsData}
+                coinSymbols={coinSymbols}
+              />
+            </div>
+            <div className="min-h-[300px] md:min-h-[400px]">
+              <TradingVolumePieChart
+                coinsData={coinsData}
+                coinSymbols={coinSymbols}
+              />
+            </div>
+          </div>
+        );
+      case "radar":
+        return (
+          <div className="min-h-[300px] md:min-h-[400px]">
+            <RadarChart
               coinsData={coinsData}
               coinSymbols={coinSymbols}
             />
           </div>
         );
-      case "radar":
-        return (
-          <RadarChart
-            coinsData={coinsData}
-            coinSymbols={coinSymbols}
-          />
-        );
       case "area":
         return (
-          <AreaChart
-            coinsData={coinsData}
-            coinSymbols={coinSymbols}
-          />
+          <div className="min-h-[300px] md:min-h-[400px]">
+            <AreaChart
+              coinsData={coinsData}
+              coinSymbols={coinSymbols}
+            />
+          </div>
         );
       default:
         return (
-          <div className="w-full h-[400px] glass-card p-6">
+          <div className="w-full min-h-[300px] md:min-h-[400px] glass-card p-4 md:p-6">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={mergedData}>
                 <XAxis
                   dataKey="time"
                   stroke="#9ca3af"
-                  fontSize={12}
+                  fontSize={isMobile ? 10 : 12}
                   tickLine={false}
+                  angle={isMobile ? -45 : 0}
+                  textAnchor={isMobile ? "end" : "middle"}
+                  height={isMobile ? 60 : 30}
                 />
                 <YAxis
                   stroke="#9ca3af"
-                  fontSize={12}
+                  fontSize={isMobile ? 10 : 12}
                   tickLine={false}
                   tickFormatter={(value) => `${value.toFixed(2)}%`}
+                  width={isMobile ? 45 : 60}
                 />
                 <Tooltip
                   contentStyle={{
@@ -120,7 +134,12 @@ export const ComparisonChart = ({
                   }}
                   labelStyle={{ color: "#9ca3af" }}
                 />
-                <Legend />
+                <Legend 
+                  wrapperStyle={{
+                    paddingTop: isMobile ? "20px" : "10px",
+                    fontSize: isMobile ? "12px" : "14px"
+                  }}
+                />
                 {coinSymbols.map((symbol, index) => (
                   <Line
                     key={symbol}

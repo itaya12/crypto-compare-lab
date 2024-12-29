@@ -10,6 +10,7 @@ import {
 import { CoinHistory } from "@/services/api";
 import { ArrowUpIcon, ArrowDownIcon } from "lucide-react";
 import { useState, useMemo } from "react";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface SingleCoinPriceChartProps {
   coinData: CoinHistory[];
@@ -23,6 +24,7 @@ export const SingleCoinPriceChart = ({
   color = "#6C5DD3"
 }: SingleCoinPriceChartProps) => {
   const [hoveredPrice, setHoveredPrice] = useState<number | null>(null);
+  const isMobile = useIsMobile();
   
   const chartData = useMemo(() => {
     return coinData.map((point) => ({
@@ -92,31 +94,36 @@ export const SingleCoinPriceChart = ({
   };
 
   return (
-    <div className="w-full h-[240px] glass-card p-4 hover:border-crypto-accent/50 transition-colors duration-300">
+    <div className="w-full min-h-[200px] md:h-[240px] glass-card p-3 md:p-4 hover:border-crypto-accent/50 transition-colors duration-300">
       <div className="flex items-center justify-between mb-2">
         <div className="space-y-1">
-          <h3 className="text-lg font-semibold">{coinSymbol} Price</h3>
-          <p className="text-2xl font-bold">
+          <h3 className="text-base md:text-lg font-semibold">{coinSymbol} Price</h3>
+          <p className="text-xl md:text-2xl font-bold">
             {formatPrice(hoveredPrice || chartData[chartData.length - 1]?.price || 0)}
           </p>
         </div>
         <div className={`flex items-center gap-1 ${percentageChanges["1d"] >= 0 ? 'text-crypto-success' : 'text-crypto-error'}`}>
           {percentageChanges["1d"] >= 0 ? (
-            <ArrowUpIcon className="w-4 h-4" />
+            <ArrowUpIcon className="w-3 h-3 md:w-4 md:h-4" />
           ) : (
-            <ArrowDownIcon className="w-4 h-4" />
+            <ArrowDownIcon className="w-3 h-3 md:w-4 md:h-4" />
           )}
-          <span className="font-medium">
+          <span className="text-sm md:text-base font-medium">
             {Math.abs(percentageChanges["1d"]).toFixed(1)}%
           </span>
         </div>
       </div>
 
-      <div className="w-full h-[120px]">
+      <div className="w-full h-[100px] md:h-[120px]">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart 
             data={chartData}
-            margin={{ top: 5, right: 5, left: 5, bottom: 5 }}
+            margin={{ 
+              top: 5, 
+              right: isMobile ? 0 : 5, 
+              left: isMobile ? -20 : 5, 
+              bottom: 5 
+            }}
             onMouseMove={(e: any) => {
               if (e.activePayload) {
                 setHoveredPrice(e.activePayload[0].payload.price);
@@ -133,20 +140,19 @@ export const SingleCoinPriceChart = ({
             <XAxis
               dataKey="time"
               stroke="#9ca3af"
-              fontSize={10}
+              fontSize={isMobile ? 10 : 12}
               tickLine={false}
-              axisLine={false}
-              tickFormatter={formatDate}
-              minTickGap={30}
+              angle={isMobile ? -45 : 0}
+              textAnchor={isMobile ? "end" : "middle"}
+              height={isMobile ? 60 : 30}
             />
             <YAxis
               stroke="#9ca3af"
-              fontSize={10}
+              fontSize={isMobile ? 10 : 12}
               tickLine={false}
-              axisLine={false}
               tickFormatter={formatPrice}
               domain={['auto', 'auto']}
-              width={60}
+              width={isMobile ? 45 : 60}
             />
             <Tooltip
               content={<CustomTooltip />}
@@ -167,10 +173,12 @@ export const SingleCoinPriceChart = ({
         </ResponsiveContainer>
       </div>
 
-      <div className="flex justify-between mt-2 px-2">
-        {Object.entries(percentageChanges).map(([label, change]) => (
-          <PriceChangeIndicator key={label} change={change} label={label} />
-        ))}
+      <div className="flex justify-between mt-2 px-1 md:px-2">
+        <div className="grid grid-cols-4 gap-2 w-full">
+          {Object.entries(percentageChanges).map(([label, change]) => (
+            <PriceChangeIndicator key={label} change={change} label={label} />
+          ))}
+        </div>
       </div>
     </div>
   );
