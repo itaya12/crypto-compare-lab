@@ -26,10 +26,18 @@ export interface CoinHistory {
 
 export const fetchTopCoins = async (): Promise<Coin[]> => {
   try {
-    const response = await fetch(`${BASE_URL}/assets?limit=50`);
+    // Fetch all available coins by setting a high limit
+    const response = await fetch(`${BASE_URL}/assets?limit=2000`);
     const data = await response.json();
+    
+    if (!response.ok) {
+      throw new Error('Failed to fetch coins');
+    }
+    
+    console.log(`Fetched ${data.data.length} coins`);
     return data.data;
   } catch (error) {
+    console.error('Error fetching coins:', error);
     toast.error("Failed to fetch coins");
     return [];
   }
@@ -57,9 +65,10 @@ export const fetchCoinHistory = async (
       ...item,
       date: new Date(item.time).toLocaleDateString(),
       marketCap: item.priceUsd * item.circulatingSupply,
-      volumeUsd24Hr: currentVolume, // Use the current volume for historical entries
+      volumeUsd24Hr: currentVolume,
     }));
   } catch (error) {
+    console.error('Error fetching coin history:', error);
     toast.error(`Failed to fetch history for ${coinId}`);
     return [];
   }

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Coin } from "@/services/api";
 import { Search } from "lucide-react";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface CoinSelectorProps {
   coins: Coin[];
@@ -55,32 +56,34 @@ export const CoinSelector = ({
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
-          <div className="max-h-64 overflow-y-auto space-y-2">
-            {filteredCoins.map((coin) => (
-              <div
-                key={coin.id}
-                className="flex items-center justify-between p-2 hover:bg-white/5 rounded-lg cursor-pointer transition-colors"
-                onClick={() => {
-                  onSelect(coin);
-                  setIsOpen(false);
-                }}
-              >
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-semibold">{coin.symbol}</span>
-                  <span className="text-xs text-gray-400">{coin.name}</span>
-                </div>
-                <span
-                  className={`text-sm ${
-                    parseFloat(coin.changePercent24Hr) >= 0
-                      ? "text-green-400"
-                      : "text-red-400"
-                  }`}
+          <ScrollArea className="h-64">
+            <div className="space-y-2">
+              {filteredCoins.map((coin) => (
+                <div
+                  key={coin.id}
+                  className="flex items-center justify-between p-2 hover:bg-white/5 rounded-lg cursor-pointer transition-colors"
+                  onClick={() => {
+                    onSelect(coin);
+                    setIsOpen(false);
+                  }}
                 >
-                  {parseFloat(coin.changePercent24Hr).toFixed(2)}%
-                </span>
-              </div>
-            ))}
-          </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-semibold">{coin.symbol}</span>
+                    <span className="text-xs text-gray-400">{coin.name}</span>
+                  </div>
+                  <span
+                    className={`text-sm ${
+                      parseFloat(coin.changePercent24Hr) >= 0
+                        ? "text-green-400"
+                        : "text-red-400"
+                    }`}
+                  >
+                    {parseFloat(coin.changePercent24Hr).toFixed(2)}%
+                  </span>
+                </div>
+              ))}
+            </div>
+          </ScrollArea>
         </div>
       )}
     </div>
