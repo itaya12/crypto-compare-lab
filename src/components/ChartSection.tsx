@@ -19,16 +19,13 @@ export const ChartSection = ({ coinsHistory, coinSymbols, chartTypes }: ChartSec
         />
       </div>
 
-      {chartTypes.map((chartType) => (
-        <div key={chartType} className="scroll-mt-8" id={chartType}>
-          <h2 className="text-2xl font-bold mb-6 capitalize">{chartType} Chart</h2>
-          <ComparisonChart
-            coinsData={coinsHistory}
-            coinSymbols={coinSymbols}
-            defaultChartType={chartType}
-          />
-        </div>
-      ))}
+      <div className="scroll-mt-8">
+        <ComparisonChart
+          coinsData={coinsHistory}
+          coinSymbols={coinSymbols}
+          defaultChartType={chartTypes[0]}
+        />
+      </div>
     </div>
   );
 };

@@ -1,34 +1,32 @@
 import { Button } from "@/components/ui/button";
-
-type ChartType = "line" | "pie" | "heatmap" | "scatter" | "radar";
+import { cn } from "@/lib/utils";
 
 interface ChartTypeSelectorProps {
-  selectedType: ChartType;
-  onSelect: (type: ChartType) => void;
+  selectedType: "line" | "pie" | "radar" | "area";
+  onSelect: (type: "line" | "pie" | "radar" | "area") => void;
 }
 
-export const ChartTypeSelector = ({
-  selectedType,
-  onSelect,
-}: ChartTypeSelectorProps) => {
-  const chartTypes: ChartType[] = [
-    "line",
-    "pie",
-    "heatmap",
-    "scatter",
-    "radar",
-  ];
+export const ChartTypeSelector = ({ selectedType, onSelect }: ChartTypeSelectorProps) => {
+  const types = [
+    { id: "line", label: "Line Chart" },
+    { id: "area", label: "Area Chart" },
+    { id: "pie", label: "Pie Chart" },
+    { id: "radar", label: "Radar Chart" },
+  ] as const;
 
   return (
-    <div className="flex flex-wrap gap-2 mb-4">
-      {chartTypes.map((type) => (
+    <div className="flex flex-wrap gap-4 mb-8">
+      {types.map((type) => (
         <Button
-          key={type}
-          variant={selectedType === type ? "default" : "outline"}
-          onClick={() => onSelect(type)}
-          className="capitalize"
+          key={type.id}
+          variant="outline"
+          onClick={() => onSelect(type.id)}
+          className={cn(
+            "min-w-[120px]",
+            selectedType === type.id && "bg-primary text-primary-foreground hover:bg-primary/90"
+          )}
         >
-          {type}
+          {type.label}
         </Button>
       ))}
     </div>
