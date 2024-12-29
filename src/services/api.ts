@@ -24,9 +24,19 @@ export interface CoinHistory {
   volumeUsd24Hr?: string;
 }
 
+const validateCoinData = (coin: any): boolean => {
+  return (
+    coin.priceUsd !== null &&
+    coin.priceUsd !== undefined &&
+    !isNaN(parseFloat(coin.priceUsd)) &&
+    coin.marketCapUsd !== null &&
+    coin.volumeUsd24Hr !== null &&
+    coin.changePercent24Hr !== null
+  );
+};
+
 export const fetchTopCoins = async (): Promise<Coin[]> => {
   try {
-    // Fetch all available coins by setting a high limit
     const response = await fetch(`${BASE_URL}/assets?limit=2000`);
     const data = await response.json();
     
@@ -34,8 +44,16 @@ export const fetchTopCoins = async (): Promise<Coin[]> => {
       throw new Error('Failed to fetch coins');
     }
     
-    console.log(`Fetched ${data.data.length} coins`);
-    return data.data;
+    // Filter out coins with invalid or missing data
+    const validCoins = data.data.filter(validateCoinData);
+    console.log(`Fetched ${validCoins.length} valid coins out of ${data.data.length} total coins`);
+    
+    if (validCoins.length === 0) {
+      toast.error("No valid coin data available");
+      return [];
+    }
+    
+    return validCoins;
   } catch (error) {
     console.error('Error fetching coins:', error);
     toast.error("Failed to fetch coins");
@@ -53,6 +71,12 @@ export const fetchCoinHistory = async (
     // First, get the current data for the coin to get the latest volume
     const currentResponse = await fetch(`${BASE_URL}/assets/${coinId}`);
     const currentData = await currentResponse.json();
+    
+    if (!currentResponse.ok || !currentData.data) {
+      console.warn(`No current data available for ${coinId}`);
+      return [];
+    }
+
     const currentVolume = currentData.data?.volumeUsd24Hr || "0";
 
     // Then get the historical price data
@@ -61,10 +85,27 @@ export const fetchCoinHistory = async (
     );
     const historyData = await historyResponse.json();
 
-    return historyData.data.map((item: any) => ({
+    if (!historyResponse.ok || !historyData.data || historyData.data.length === 0) {
+      console.warn(`No historical data available for ${coinId}`);
+      toast.error(`No historical data available for ${coinId}`);
+      return [];
+    }
+
+    // Filter out any invalid data points
+    const validHistoryData = historyData.data.filter((item: any) => 
+      item.priceUsd !== null && 
+      !isNaN(parseFloat(item.priceUsd))
+    );
+
+    if (validHistoryData.length === 0) {
+      toast.error(`No valid historical data for ${coinId}`);
+      return [];
+    }
+
+    return validHistoryData.map((item: any) => ({
       ...item,
       date: new Date(item.time).toLocaleDateString(),
-      marketCap: item.priceUsd * item.circulatingSupply,
+      marketCap: item.priceUsd * (item.circulatingSupply || 0),
       volumeUsd24Hr: currentVolume,
     }));
   } catch (error) {
