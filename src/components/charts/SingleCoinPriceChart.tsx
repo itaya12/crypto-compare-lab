@@ -10,7 +10,6 @@ import {
 import { CoinHistory } from "@/services/api";
 import { ArrowUpIcon, ArrowDownIcon } from "lucide-react";
 import { useState, useMemo } from "react";
-import { Button } from "@/components/ui/button";
 
 interface SingleCoinPriceChartProps {
   coinData: CoinHistory[];
@@ -18,43 +17,19 @@ interface SingleCoinPriceChartProps {
   color?: string;
 }
 
-type TimeFrame = "1w" | "1m" | "6m";
-
 export const SingleCoinPriceChart = ({ 
   coinData, 
   coinSymbol,
   color = "#6C5DD3"
 }: SingleCoinPriceChartProps) => {
-  const [timeFrame, setTimeFrame] = useState<TimeFrame>("1w");
   const [hoveredPrice, setHoveredPrice] = useState<number | null>(null);
-
-  const filterDataByTimeFrame = (data: CoinHistory[], frame: TimeFrame) => {
-    const now = Date.now();
-    const timeFrameInDays = {
-      "1w": 7,
-      "1m": 30,
-      "6m": 180
-    };
-    
-    const daysInMilliseconds = timeFrameInDays[frame] * 24 * 60 * 60 * 1000;
-    const startTime = now - daysInMilliseconds;
-    
-    return data.filter(point => {
-      const pointTime = new Date(point.time).getTime();
-      return pointTime >= startTime && pointTime <= now;
-    });
-  };
-
-  const filteredData = useMemo(() => {
-    return filterDataByTimeFrame(coinData, timeFrame);
-  }, [coinData, timeFrame]);
   
   const chartData = useMemo(() => {
-    return filteredData.map((point) => ({
+    return coinData.map((point) => ({
       time: new Date(point.time).toLocaleDateString(),
       price: parseFloat(point.priceUsd),
     }));
-  }, [filteredData]);
+  }, [coinData]);
 
   const calculatePercentageChange = (data: typeof chartData, days: number) => {
     if (data.length < 2) return 0;
@@ -116,11 +91,6 @@ export const SingleCoinPriceChart = ({
     return null;
   };
 
-  // Add console logs to debug time frame changes
-  console.log('TimeFrame:', timeFrame);
-  console.log('Filtered Data Length:', filteredData.length);
-  console.log('Chart Data Length:', chartData.length);
-
   return (
     <div className="w-full h-[240px] glass-card p-4 hover:border-crypto-accent/50 transition-colors duration-300">
       <div className="flex items-center justify-between mb-2">
@@ -140,20 +110,6 @@ export const SingleCoinPriceChart = ({
             {Math.abs(percentageChanges["1d"]).toFixed(1)}%
           </span>
         </div>
-      </div>
-
-      <div className="flex justify-end gap-2 mb-2">
-        {(["1w", "1m", "6m"] as TimeFrame[]).map((frame) => (
-          <Button
-            key={frame}
-            variant={timeFrame === frame ? "default" : "outline"}
-            size="sm"
-            onClick={() => setTimeFrame(frame)}
-            className={timeFrame === frame ? "bg-crypto-accent hover:bg-crypto-accent/90" : ""}
-          >
-            {frame}
-          </Button>
-        ))}
       </div>
 
       <div className="w-full h-[120px]">
