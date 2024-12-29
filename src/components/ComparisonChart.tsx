@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   LineChart,
   Line,
@@ -21,6 +21,7 @@ interface ComparisonChartProps {
   coin2Data: CoinHistory[];
   coin1Symbol: string;
   coin2Symbol: string;
+  defaultChartType?: "line" | "candlestick" | "bar" | "pie" | "area" | "radar";
 }
 
 export const ComparisonChart = ({
@@ -28,12 +29,16 @@ export const ComparisonChart = ({
   coin2Data,
   coin1Symbol,
   coin2Symbol,
+  defaultChartType = "line",
 }: ComparisonChartProps) => {
   const [chartType, setChartType] = useState<
-    "line" | "candlestick" | "bar" | "pie" | "heatmap" | "scatter" | "area" | "radar"
-  >("line");
+    "line" | "candlestick" | "bar" | "pie" | "area" | "radar"
+  >(defaultChartType);
 
-  // Normalize data to percentage change from first price
+  useEffect(() => {
+    setChartType(defaultChartType);
+  }, [defaultChartType]);
+
   const normalizeData = (data: CoinHistory[]) => {
     if (data.length === 0) return [];
     const firstPrice = parseFloat(data[0].priceUsd);

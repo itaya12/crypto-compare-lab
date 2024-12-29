@@ -17,16 +17,28 @@ const Index = () => {
     queryFn: fetchTopCoins,
   });
 
+  useEffect(() => {
+    if (coins.length > 0) {
+      const bitcoin = coins.find((coin) => coin.symbol === "BTC");
+      const ethereum = coins.find((coin) => coin.symbol === "ETH");
+      
+      if (bitcoin && ethereum) {
+        setSelectedCoin1(bitcoin);
+        setSelectedCoin2(ethereum);
+      }
+    }
+  }, [coins]);
+
   const { data: coin1History = [] } = useQuery({
     queryKey: ["coinHistory", selectedCoin1?.id],
     queryFn: () => fetchCoinHistory(selectedCoin1?.id || ""),
-    enabled: !!selectedCoin1 && showComparison,
+    enabled: !!selectedCoin1,
   });
 
   const { data: coin2History = [] } = useQuery({
     queryKey: ["coinHistory", selectedCoin2?.id],
     queryFn: () => fetchCoinHistory(selectedCoin2?.id || ""),
-    enabled: !!selectedCoin2 && showComparison,
+    enabled: !!selectedCoin2,
   });
 
   const handleShare = () => {
@@ -44,6 +56,15 @@ const Index = () => {
       setShowComparison(false);
     }
   }, [selectedCoin1, selectedCoin2]);
+
+  const chartTypes = [
+    "line",
+    "candlestick",
+    "bar",
+    "pie",
+    "area",
+    "radar"
+  ] as const;
 
   return (
     <div className="min-h-screen p-6 md:p-8 space-y-8 max-w-7xl mx-auto">
@@ -87,12 +108,20 @@ const Index = () => {
           </div>
 
           {selectedCoin1 && selectedCoin2 && (
-            <ComparisonChart
-              coin1Data={coin1History}
-              coin2Data={coin2History}
-              coin1Symbol={selectedCoin1.symbol}
-              coin2Symbol={selectedCoin2.symbol}
-            />
+            <div className="space-y-24">
+              {chartTypes.map((chartType) => (
+                <div key={chartType} className="scroll-mt-8" id={chartType}>
+                  <h2 className="text-2xl font-bold mb-6 capitalize">{chartType} Chart</h2>
+                  <ComparisonChart
+                    coin1Data={coin1History}
+                    coin2Data={coin2History}
+                    coin1Symbol={selectedCoin1.symbol}
+                    coin2Symbol={selectedCoin2.symbol}
+                    defaultChartType={chartType}
+                  />
+                </div>
+              ))}
+            </div>
           )}
         </div>
       )}
