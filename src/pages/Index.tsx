@@ -94,10 +94,7 @@ const Index = () => {
 
   const chartTypes = [
     "line",
-    "candlestick",
-    "bar",
     "pie",
-    "area",
     "radar"
   ] as const;
 
