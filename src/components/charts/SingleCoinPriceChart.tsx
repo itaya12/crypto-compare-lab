@@ -26,6 +26,7 @@ export const SingleCoinPriceChart = ({
   color = "#6C5DD3"
 }: SingleCoinPriceChartProps) => {
   const [timeFrame, setTimeFrame] = useState<TimeFrame>("1w");
+  const [hoveredPrice, setHoveredPrice] = useState<number | null>(null);
 
   const filterDataByTimeFrame = (data: CoinHistory[], frame: TimeFrame) => {
     const now = Date.now();
@@ -64,8 +65,18 @@ export const SingleCoinPriceChart = ({
   };
 
   const formatPrice = (value: number) => {
+    if (value >= 1000000) return `$${(value / 1000000).toFixed(2)}M`;
     if (value >= 1000) return `$${(value / 1000).toFixed(2)}k`;
     return `$${value.toFixed(2)}`;
+  };
+
+  const formatDate = (date: string) => {
+    return new Date(date).toLocaleDateString(undefined, {
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
   };
 
   const PriceChangeIndicator = ({ change, label }: { change: number; label: string }) => (
@@ -84,10 +95,28 @@ export const SingleCoinPriceChart = ({
     </div>
   );
 
+  const CustomTooltip = ({ active, payload }: any) => {
+    if (active && payload && payload.length) {
+      const data = payload[0].payload;
+      return (
+        <div className="glass-card p-3 !bg-crypto-card border-none">
+          <p className="text-sm text-gray-400">{formatDate(data.time)}</p>
+          <p className="text-lg font-semibold">{formatPrice(data.price)}</p>
+        </div>
+      );
+    }
+    return null;
+  };
+
   return (
-    <div className="w-full h-[400px] glass-card p-6">
+    <div className="w-full h-[400px] glass-card p-6 hover:border-crypto-accent/50 transition-colors duration-300">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold">{coinSymbol} Price</h3>
+        <div className="space-y-1">
+          <h3 className="text-lg font-semibold">{coinSymbol} Price</h3>
+          <p className="text-2xl font-bold">
+            {formatPrice(hoveredPrice || chartData[chartData.length - 1]?.price || 0)}
+          </p>
+        </div>
         <div className={`flex items-center gap-1 ${percentageChanges["1d"] >= 0 ? 'text-crypto-success' : 'text-crypto-error'}`}>
           {percentageChanges["1d"] >= 0 ? (
             <ArrowUpIcon className="w-4 h-4" />
@@ -107,6 +136,7 @@ export const SingleCoinPriceChart = ({
             variant={timeFrame === frame ? "default" : "outline"}
             size="sm"
             onClick={() => setTimeFrame(frame)}
+            className={timeFrame === frame ? "bg-crypto-accent hover:bg-crypto-accent/90" : ""}
           >
             {frame}
           </Button>
@@ -114,7 +144,15 @@ export const SingleCoinPriceChart = ({
       </div>
 
       <ResponsiveContainer width="100%" height="70%">
-        <LineChart data={chartData}>
+        <LineChart 
+          data={chartData}
+          onMouseMove={(e: any) => {
+            if (e.activePayload) {
+              setHoveredPrice(e.activePayload[0].payload.price);
+            }
+          }}
+          onMouseLeave={() => setHoveredPrice(null)}
+        >
           <defs>
             <linearGradient id={`gradient-${coinSymbol}`} x1="0" y1="0" x2="0" y2="1">
               <stop offset="5%" stopColor={color} stopOpacity={0.3}/>
@@ -127,6 +165,8 @@ export const SingleCoinPriceChart = ({
             fontSize={12}
             tickLine={false}
             axisLine={false}
+            tickFormatter={formatDate}
+            minTickGap={30}
           />
           <YAxis
             stroke="#9ca3af"
@@ -134,16 +174,11 @@ export const SingleCoinPriceChart = ({
             tickLine={false}
             axisLine={false}
             tickFormatter={formatPrice}
+            domain={['auto', 'auto']}
           />
           <Tooltip
-            contentStyle={{
-              backgroundColor: "#2D2A3D",
-              border: "none",
-              borderRadius: "8px",
-              padding: "12px",
-            }}
-            labelStyle={{ color: "#9ca3af" }}
-            formatter={(value: number) => [`$${value.toFixed(2)}`, "Price"]}
+            content={<CustomTooltip />}
+            cursor={{ stroke: color, strokeWidth: 1, strokeDasharray: '5 5' }}
           />
           <Line
             type="monotone"
@@ -152,7 +187,7 @@ export const SingleCoinPriceChart = ({
             strokeWidth={2}
             dot={false}
             activeDot={(props) => (
-              <Dot {...props} stroke={color} strokeWidth={2} r={4} />
+              <Dot {...props} stroke={color} fill={color} strokeWidth={2} r={4} />
             )}
             fill={`url(#gradient-${coinSymbol})`}
           />
