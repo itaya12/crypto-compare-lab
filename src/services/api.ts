@@ -1,7 +1,6 @@
 import { toast } from "sonner";
 
 const BASE_URL = "https://api.coincap.io/v2";
-const COINGECKO_URL = "https://api.coingecko.com/api/v3";
 
 export interface Coin {
   id: string;
@@ -14,7 +13,6 @@ export interface Coin {
   changePercent24Hr: string;
   supply: string;
   maxSupply: string | null;
-  imageUrl?: string;
 }
 
 export interface CoinHistory {
@@ -37,21 +35,6 @@ const validateCoinData = (coin: any): boolean => {
   );
 };
 
-const fetchCoinImage = async (coinId: string): Promise<string | null> => {
-  try {
-    const response = await fetch(
-      `${COINGECKO_URL}/simple/price?ids=${coinId.toLowerCase()}&include_24hr_change=false`
-    );
-    if (!response.ok) return null;
-    
-    const imageUrl = `https://assets.coingecko.com/coins/images/1/small/${coinId.toLowerCase()}.png`;
-    return imageUrl;
-  } catch (error) {
-    console.error('Error fetching coin image:', error);
-    return null;
-  }
-};
-
 export const fetchTopCoins = async (): Promise<Coin[]> => {
   try {
     const response = await fetch(`${BASE_URL}/assets?limit=2000`);
@@ -61,26 +44,16 @@ export const fetchTopCoins = async (): Promise<Coin[]> => {
       throw new Error('Failed to fetch coins');
     }
     
+    // Filter out coins with invalid or missing data
     const validCoins = data.data.filter(validateCoinData);
     console.log(`Fetched ${validCoins.length} valid coins out of ${data.data.length} total coins`);
     
-    // Fetch images for each coin
-    const coinsWithImages = await Promise.all(
-      validCoins.map(async (coin: Coin) => {
-        const imageUrl = await fetchCoinImage(coin.id);
-        return {
-          ...coin,
-          imageUrl: imageUrl || undefined
-        };
-      })
-    );
-    
-    if (coinsWithImages.length === 0) {
+    if (validCoins.length === 0) {
       toast.error("No valid coin data available");
       return [];
     }
     
-    return coinsWithImages;
+    return validCoins;
   } catch (error) {
     console.error('Error fetching coins:', error);
     toast.error("Failed to fetch coins");
