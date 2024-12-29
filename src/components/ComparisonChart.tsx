@@ -17,18 +17,23 @@ import { AreaChart } from "./charts/AreaChart";
 import { RadarChart } from "./charts/RadarChart";
 
 interface ComparisonChartProps {
-  coin1Data: CoinHistory[];
-  coin2Data: CoinHistory[];
-  coin1Symbol: string;
-  coin2Symbol: string;
+  coinsData: CoinHistory[][];
+  coinSymbols: string[];
   defaultChartType?: "line" | "candlestick" | "bar" | "pie" | "area" | "radar";
 }
 
+const CHART_COLORS = [
+  "#6C5DD3",
+  "#118C4F",
+  "#FFB800",
+  "#FF4842",
+  "#00A76F",
+  "#7635DC",
+];
+
 export const ComparisonChart = ({
-  coin1Data,
-  coin2Data,
-  coin1Symbol,
-  coin2Symbol,
+  coinsData,
+  coinSymbols,
   defaultChartType = "line",
 }: ComparisonChartProps) => {
   const [chartType, setChartType] = useState<
@@ -48,61 +53,54 @@ export const ComparisonChart = ({
     }));
   };
 
-  const coin1Normalized = normalizeData(coin1Data);
-  const coin2Normalized = normalizeData(coin2Data);
+  const normalizedData = coinsData.map(data => normalizeData(data));
 
   // Merge data points
-  const mergedData = coin1Normalized.map((point, i) => ({
-    time: point.time,
-    [coin1Symbol]: point.price,
-    [coin2Symbol]: coin2Normalized[i]?.price || 0,
-  }));
+  const mergedData = normalizedData[0].map((point, timeIndex) => {
+    const dataPoint: { [key: string]: any } = {
+      time: point.time,
+    };
+    normalizedData.forEach((coinData, coinIndex) => {
+      dataPoint[coinSymbols[coinIndex]] = coinData[timeIndex]?.price || 0;
+    });
+    return dataPoint;
+  });
 
   const renderChart = () => {
     switch (chartType) {
       case "candlestick":
         return (
           <CandlestickChart
-            coin1Data={coin1Data}
-            coin2Data={coin2Data}
-            coin1Symbol={coin1Symbol}
-            coin2Symbol={coin2Symbol}
+            coinsData={coinsData}
+            coinSymbols={coinSymbols}
           />
         );
       case "bar":
         return (
           <BarChart
-            coin1Data={coin1Data}
-            coin2Data={coin2Data}
-            coin1Symbol={coin1Symbol}
-            coin2Symbol={coin2Symbol}
+            coinsData={coinsData}
+            coinSymbols={coinSymbols}
           />
         );
       case "pie":
         return (
           <PieChart
-            coin1Data={coin1Data}
-            coin2Data={coin2Data}
-            coin1Symbol={coin1Symbol}
-            coin2Symbol={coin2Symbol}
+            coinsData={coinsData}
+            coinSymbols={coinSymbols}
           />
         );
       case "area":
         return (
           <AreaChart
-            coin1Data={coin1Data}
-            coin2Data={coin2Data}
-            coin1Symbol={coin1Symbol}
-            coin2Symbol={coin2Symbol}
+            coinsData={coinsData}
+            coinSymbols={coinSymbols}
           />
         );
       case "radar":
         return (
           <RadarChart
-            coin1Data={coin1Data}
-            coin2Data={coin2Data}
-            coin1Symbol={coin1Symbol}
-            coin2Symbol={coin2Symbol}
+            coinsData={coinsData}
+            coinSymbols={coinSymbols}
           />
         );
       default:
@@ -132,20 +130,16 @@ export const ComparisonChart = ({
                   labelStyle={{ color: "#9ca3af" }}
                 />
                 <Legend />
-                <Line
-                  type="monotone"
-                  dataKey={coin1Symbol}
-                  stroke="#6C5DD3"
-                  strokeWidth={2}
-                  dot={false}
-                />
-                <Line
-                  type="monotone"
-                  dataKey={coin2Symbol}
-                  stroke="#118C4F"
-                  strokeWidth={2}
-                  dot={false}
-                />
+                {coinSymbols.map((symbol, index) => (
+                  <Line
+                    key={symbol}
+                    type="monotone"
+                    dataKey={symbol}
+                    stroke={CHART_COLORS[index % CHART_COLORS.length]}
+                    strokeWidth={2}
+                    dot={false}
+                  />
+                ))}
               </LineChart>
             </ResponsiveContainer>
           </div>
@@ -155,7 +149,6 @@ export const ComparisonChart = ({
 
   return (
     <div className="space-y-4 animate-slide-up">
-      <ChartTypeSelector selectedType={chartType} onSelect={setChartType} />
       {renderChart()}
     </div>
   );

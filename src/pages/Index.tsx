@@ -4,12 +4,12 @@ import { Coin, fetchTopCoins, fetchCoinHistory } from "@/services/api";
 import { CoinSelector } from "@/components/CoinSelector";
 import { ComparisonChart } from "@/components/ComparisonChart";
 import { CoinStats } from "@/components/CoinStats";
-import { Share2 } from "lucide-react";
+import { Share2, Plus, X } from "lucide-react";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
 
 const Index = () => {
-  const [selectedCoin1, setSelectedCoin1] = useState<Coin | null>(null);
-  const [selectedCoin2, setSelectedCoin2] = useState<Coin | null>(null);
+  const [selectedCoins, setSelectedCoins] = useState<(Coin | null)[]>([null, null]);
   const [showComparison, setShowComparison] = useState(false);
 
   const { data: coins = [] } = useQuery({
@@ -23,39 +23,54 @@ const Index = () => {
       const ethereum = coins.find((coin) => coin.symbol === "ETH");
       
       if (bitcoin && ethereum) {
-        setSelectedCoin1(bitcoin);
-        setSelectedCoin2(ethereum);
+        setSelectedCoins([bitcoin, ethereum]);
       }
     }
   }, [coins]);
 
-  const { data: coin1History = [] } = useQuery({
-    queryKey: ["coinHistory", selectedCoin1?.id],
-    queryFn: () => fetchCoinHistory(selectedCoin1?.id || ""),
-    enabled: !!selectedCoin1,
-  });
-
-  const { data: coin2History = [] } = useQuery({
-    queryKey: ["coinHistory", selectedCoin2?.id],
-    queryFn: () => fetchCoinHistory(selectedCoin2?.id || ""),
-    enabled: !!selectedCoin2,
-  });
+  const coinHistoryQueries = selectedCoins.map((coin, index) => 
+    useQuery({
+      queryKey: ["coinHistory", coin?.id],
+      queryFn: () => fetchCoinHistory(coin?.id || ""),
+      enabled: !!coin,
+    })
+  );
 
   const handleShare = () => {
-    if (selectedCoin1 && selectedCoin2) {
-      const url = `${window.location.origin}?coin1=${selectedCoin1.id}&coin2=${selectedCoin2.id}`;
+    if (selectedCoins.every(coin => coin)) {
+      const url = `${window.location.origin}?coins=${selectedCoins.map(coin => coin?.id).join(",")}`;
       navigator.clipboard.writeText(url);
       toast.success("Comparison link copied to clipboard!");
     }
   };
 
+  const addCoin = () => {
+    setSelectedCoins([...selectedCoins, null]);
+  };
+
+  const removeCoin = (index: number) => {
+    if (selectedCoins.length <= 2) {
+      toast.error("Minimum two coins required for comparison");
+      return;
+    }
+    const newCoins = [...selectedCoins];
+    newCoins.splice(index, 1);
+    setSelectedCoins(newCoins);
+  };
+
+  const updateCoin = (index: number, coin: Coin) => {
+    const newCoins = [...selectedCoins];
+    newCoins[index] = coin;
+    setSelectedCoins(newCoins);
+  };
+
   useEffect(() => {
-    if (selectedCoin1 && selectedCoin2) {
+    if (selectedCoins.length >= 2 && selectedCoins.every(coin => coin)) {
       setShowComparison(true);
     } else {
       setShowComparison(false);
     }
-  }, [selectedCoin1, selectedCoin2]);
+  }, [selectedCoins]);
 
   const chartTypes = [
     "line",
@@ -75,19 +90,37 @@ const Index = () => {
         </p>
       </div>
 
-      <div className="grid md:grid-cols-2 gap-6 animate-slide-up">
-        <CoinSelector
-          coins={coins}
-          selectedCoin={selectedCoin1}
-          onSelect={setSelectedCoin1}
-          label="Select First Coin"
-        />
-        <CoinSelector
-          coins={coins}
-          selectedCoin={selectedCoin2}
-          onSelect={setSelectedCoin2}
-          label="Select Second Coin"
-        />
+      <div className="space-y-4">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 animate-slide-up">
+          {selectedCoins.map((selectedCoin, index) => (
+            <div key={index} className="relative">
+              <CoinSelector
+                coins={coins}
+                selectedCoin={selectedCoin}
+                onSelect={(coin) => updateCoin(index, coin)}
+                label={`Select Coin ${index + 1}`}
+              />
+              {index >= 2 && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="absolute -top-2 -right-2"
+                  onClick={() => removeCoin(index)}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
+          ))}
+          <Button
+            variant="outline"
+            className="h-full min-h-[100px] flex items-center justify-center gap-2"
+            onClick={addCoin}
+          >
+            <Plus className="h-4 w-4" />
+            Add Coin
+          </Button>
+        </div>
       </div>
 
       {showComparison && (
@@ -102,21 +135,20 @@ const Index = () => {
             </button>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-6">
-            {selectedCoin1 && <CoinStats coin={selectedCoin1} />}
-            {selectedCoin2 && <CoinStats coin={selectedCoin2} />}
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {selectedCoins.map((coin, index) => (
+              coin && <CoinStats key={index} coin={coin} />
+            ))}
           </div>
 
-          {selectedCoin1 && selectedCoin2 && (
+          {selectedCoins.every(coin => coin) && (
             <div className="space-y-24">
               {chartTypes.map((chartType) => (
                 <div key={chartType} className="scroll-mt-8" id={chartType}>
                   <h2 className="text-2xl font-bold mb-6 capitalize">{chartType} Chart</h2>
                   <ComparisonChart
-                    coin1Data={coin1History}
-                    coin2Data={coin2History}
-                    coin1Symbol={selectedCoin1.symbol}
-                    coin2Symbol={selectedCoin2.symbol}
+                    coinsData={coinHistoryQueries.map(query => query.data || [])}
+                    coinSymbols={selectedCoins.map(coin => coin?.symbol || "")}
                     defaultChartType={chartType}
                   />
                 </div>
