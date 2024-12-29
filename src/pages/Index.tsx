@@ -4,14 +4,19 @@ import { Coin, fetchTopCoins, fetchCoinHistory } from "@/services/api";
 import { CoinSelector } from "@/components/CoinSelector";
 import { ComparisonChart } from "@/components/ComparisonChart";
 import { CoinStats } from "@/components/CoinStats";
-import { Share2, Plus, X } from "lucide-react";
+import { Share2, Plus, X, Calendar } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { Calendar as CalendarComponent } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { format } from "date-fns";
 
 const Index = () => {
   const [selectedCoins, setSelectedCoins] = useState<(Coin | null)[]>([null, null]);
   const [showComparison, setShowComparison] = useState(false);
   const [additionalCoins, setAdditionalCoins] = useState<(Coin | null)[]>([]);
+  const [startDate, setStartDate] = useState<Date>(new Date(Date.now() - 7 * 24 * 60 * 60 * 1000));
+  const [endDate, setEndDate] = useState<Date>(new Date());
 
   const { data: coins = [] } = useQuery({
     queryKey: ["coins"],
@@ -22,8 +27,8 @@ const Index = () => {
   const queries = [0, 1, 2, 3, 4].map(index => {
     const coinId = selectedCoins[index]?.id;
     return useQuery({
-      queryKey: ["coinHistory", coinId],
-      queryFn: () => fetchCoinHistory(coinId || ""),
+      queryKey: ["coinHistory", coinId, startDate, endDate],
+      queryFn: () => fetchCoinHistory(coinId || "", startDate.getTime(), endDate.getTime()),
       enabled: !!coinId,
     });
   });
@@ -106,6 +111,46 @@ const Index = () => {
       </div>
 
       <div className="space-y-4">
+        <div className="flex justify-end gap-4">
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline" className="flex items-center gap-2">
+                <Calendar className="h-4 w-4" />
+                Start: {format(startDate, "PP")}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="end">
+              <CalendarComponent
+                mode="single"
+                selected={startDate}
+                onSelect={(date) => date && setStartDate(date)}
+                disabled={(date) =>
+                  date > new Date() || date > endDate
+                }
+              />
+            </PopoverContent>
+          </Popover>
+
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline" className="flex items-center gap-2">
+                <Calendar className="h-4 w-4" />
+                End: {format(endDate, "PP")}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="end">
+              <CalendarComponent
+                mode="single"
+                selected={endDate}
+                onSelect={(date) => date && setEndDate(date)}
+                disabled={(date) =>
+                  date > new Date() || date < startDate
+                }
+              />
+            </PopoverContent>
+          </Popover>
+        </div>
+
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 animate-slide-up">
           {selectedCoins.map((selectedCoin, index) => (
             <div key={index} className="relative">

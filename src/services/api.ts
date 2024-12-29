@@ -34,9 +34,9 @@ export const fetchTopCoins = async (): Promise<Coin[]> => {
 
 export const fetchCoinHistory = async (
   coinId: string,
-  interval: string = "h1",
   start: number = Date.now() - 7 * 24 * 60 * 60 * 1000,
-  end: number = Date.now()
+  end: number = Date.now(),
+  interval: string = "h1",
 ): Promise<CoinHistory[]> => {
   try {
     const response = await fetch(
