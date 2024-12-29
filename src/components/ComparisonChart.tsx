@@ -13,6 +13,8 @@ import { ChartTypeSelector } from "./ChartTypeSelector";
 import { CandlestickChart } from "./charts/CandlestickChart";
 import { BarChart } from "./charts/BarChart";
 import { PieChart } from "./charts/PieChart";
+import { AreaChart } from "./charts/AreaChart";
+import { RadarChart } from "./charts/RadarChart";
 
 interface ComparisonChartProps {
   coin1Data: CoinHistory[];
@@ -28,7 +30,7 @@ export const ComparisonChart = ({
   coin2Symbol,
 }: ComparisonChartProps) => {
   const [chartType, setChartType] = useState<
-    "line" | "candlestick" | "bar" | "pie" | "heatmap" | "scatter"
+    "line" | "candlestick" | "bar" | "pie" | "heatmap" | "scatter" | "area" | "radar"
   >("line");
 
   // Normalize data to percentage change from first price
@@ -74,6 +76,24 @@ export const ComparisonChart = ({
       case "pie":
         return (
           <PieChart
+            coin1Data={coin1Data}
+            coin2Data={coin2Data}
+            coin1Symbol={coin1Symbol}
+            coin2Symbol={coin2Symbol}
+          />
+        );
+      case "area":
+        return (
+          <AreaChart
+            coin1Data={coin1Data}
+            coin2Data={coin2Data}
+            coin1Symbol={coin1Symbol}
+            coin2Symbol={coin2Symbol}
+          />
+        );
+      case "radar":
+        return (
+          <RadarChart
             coin1Data={coin1Data}
             coin2Data={coin2Data}
             coin1Symbol={coin1Symbol}
