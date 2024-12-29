@@ -17,6 +17,23 @@ const Index = () => {
     queryFn: fetchTopCoins,
   });
 
+  // Create an array of query keys for all possible selected coins
+  const queryKeys = selectedCoins.map((coin) => 
+    coin ? ["coinHistory", coin.id] : null
+  );
+
+  // Create individual queries for each coin
+  const queries = queryKeys.map((key) => 
+    useQuery({
+      queryKey: key,
+      queryFn: () => fetchCoinHistory(key?.[1] || ""),
+      enabled: !!key,
+    })
+  );
+
+  // Extract the history data from queries
+  const coinsHistory = queries.map(query => query.data || []);
+
   useEffect(() => {
     if (coins.length > 0) {
       const bitcoin = coins.find((coin) => coin.symbol === "BTC");
@@ -27,14 +44,6 @@ const Index = () => {
       }
     }
   }, [coins]);
-
-  const coinHistoryQueries = selectedCoins.map((coin, index) => 
-    useQuery({
-      queryKey: ["coinHistory", coin?.id],
-      queryFn: () => fetchCoinHistory(coin?.id || ""),
-      enabled: !!coin,
-    })
-  );
 
   const handleShare = () => {
     if (selectedCoins.every(coin => coin)) {
@@ -147,7 +156,7 @@ const Index = () => {
                 <div key={chartType} className="scroll-mt-8" id={chartType}>
                   <h2 className="text-2xl font-bold mb-6 capitalize">{chartType} Chart</h2>
                   <ComparisonChart
-                    coinsData={coinHistoryQueries.map(query => query.data || [])}
+                    coinsData={coinsHistory}
                     coinSymbols={selectedCoins.map(coin => coin?.symbol || "")}
                     defaultChartType={chartType}
                   />
