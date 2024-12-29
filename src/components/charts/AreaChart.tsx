@@ -75,16 +75,8 @@ export const AreaChart = ({ coinsData, coinSymbols }: AreaChartProps) => {
             }}
             labelStyle={{ color: "#9ca3af" }}
             formatter={(value: number) => formatValue(value)}
-            cursor={{ strokeDasharray: "3 3" }}
-            wrapperStyle={{ zIndex: 100 }}
-            animationDuration={200}
           />
-          <Legend
-            wrapperStyle={{ paddingTop: "20px" }}
-            onClick={(data) => {
-              console.log("Legend clicked:", data);
-            }}
-          />
+          <Legend />
           {coinSymbols.map((symbol, index) => (
             <Area
               key={symbol}
@@ -95,9 +87,6 @@ export const AreaChart = ({ coinsData, coinSymbols }: AreaChartProps) => {
               fill={CHART_COLORS[index % CHART_COLORS.length]}
               fillOpacity={0.3}
               stackId="1"
-              animationDuration={1500}
-              animationBegin={index * 200}
-              activeDot={{ r: 6, strokeWidth: 2 }}
             />
           ))}
         </RechartsAreaChart>

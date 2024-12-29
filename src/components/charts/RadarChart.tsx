@@ -6,7 +6,6 @@ import {
   Radar,
   ResponsiveContainer,
   Legend,
-  Tooltip,
 } from "recharts";
 import { CoinHistory } from "@/services/api";
 
@@ -99,30 +98,9 @@ export const RadarChart = ({
               stroke={CHART_COLORS[index % CHART_COLORS.length]}
               fill={CHART_COLORS[index % CHART_COLORS.length]}
               fillOpacity={0.3}
-              animationDuration={1500}
-              animationBegin={index * 200}
-              dot={{ strokeWidth: 2 }}
-              activeDot={{ r: 6, strokeWidth: 2 }}
             />
           ))}
-          <Tooltip
-            contentStyle={{
-              backgroundColor: "#2D2A3D",
-              border: "none",
-              borderRadius: "8px",
-              padding: "12px",
-            }}
-            labelStyle={{ color: "#9ca3af" }}
-            cursor={{ strokeDasharray: "3 3" }}
-            wrapperStyle={{ zIndex: 100 }}
-            animationDuration={200}
-          />
-          <Legend
-            wrapperStyle={{ paddingTop: "20px" }}
-            onClick={(data) => {
-              console.log("Legend clicked:", data);
-            }}
-          />
+          <Legend />
         </RechartsRadarChart>
       </ResponsiveContainer>
     </div>
