@@ -28,9 +28,9 @@ export const RadarChart = ({
 
     return {
       price: parseFloat(latest.priceUsd),
-      volume: parseFloat(latest.volumeUsd24Hr || "0"),
-      supply: parseFloat(latest.supply || "0"),
-      marketCap: parseFloat(latest.marketCapUsd || "0"),
+      volume: parseFloat(latest.date || "0"), // Using date as a placeholder for volume
+      supply: parseFloat(latest.circulatingSupply || "0"),
+      marketCap: parseFloat(latest.marketCap || "0"),
     };
   };
 
