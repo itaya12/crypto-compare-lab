@@ -10,35 +10,45 @@ import {
 import { CoinHistory } from "@/services/api";
 
 interface BarChartProps {
-  coin1Data: CoinHistory[];
-  coin2Data: CoinHistory[];
-  coin1Symbol: string;
-  coin2Symbol: string;
+  coinsData: CoinHistory[][];
+  coinSymbols: string[];
 }
 
+const CHART_COLORS = [
+  "#6C5DD3",
+  "#118C4F",
+  "#FFB800",
+  "#FF4842",
+  "#00A76F",
+  "#7635DC",
+];
+
 export const BarChart = ({
-  coin1Data,
-  coin2Data,
-  coin1Symbol,
-  coin2Symbol,
+  coinsData,
+  coinSymbols,
 }: BarChartProps) => {
-  const processData = (data: CoinHistory[]) => {
-    return data.map((point) => ({
-      time: new Date(point.time).toLocaleDateString(),
-      value: parseFloat(point.priceUsd),
-    }));
+  const processData = (data: CoinHistory[][]) => {
+    if (!data[0]?.length) return [];
+    
+    return data[0].map((_, timeIndex) => {
+      const point: any = {
+        time: new Date(data[0][timeIndex].time).toLocaleDateString(),
+      };
+      
+      data.forEach((coinData, coinIndex) => {
+        point[coinSymbols[coinIndex]] = parseFloat(coinData[timeIndex]?.priceUsd || '0');
+      });
+      
+      return point;
+    });
   };
 
-  const mergedData = processData(coin1Data).map((point, i) => ({
-    time: point.time,
-    [coin1Symbol]: point.value,
-    [coin2Symbol]: processData(coin2Data)[i]?.value || 0,
-  }));
+  const chartData = processData(coinsData);
 
   return (
     <div className="w-full h-[400px] glass-card p-6">
       <ResponsiveContainer width="100%" height="100%">
-        <RechartsBarChart data={mergedData}>
+        <RechartsBarChart data={chartData}>
           <XAxis
             dataKey="time"
             stroke="#9ca3af"
@@ -56,8 +66,13 @@ export const BarChart = ({
             labelStyle={{ color: "#9ca3af" }}
           />
           <Legend />
-          <Bar dataKey={coin1Symbol} fill="#6C5DD3" />
-          <Bar dataKey={coin2Symbol} fill="#118C4F" />
+          {coinSymbols.map((symbol, index) => (
+            <Bar
+              key={symbol}
+              dataKey={symbol}
+              fill={CHART_COLORS[index % CHART_COLORS.length]}
+            />
+          ))}
         </RechartsBarChart>
       </ResponsiveContainer>
     </div>

@@ -5,30 +5,45 @@ import {
   Tooltip,
   ResponsiveContainer,
   Bar,
+  Legend,
 } from "recharts";
 import { CoinHistory } from "@/services/api";
 
 interface CandlestickChartProps {
-  coin1Data: CoinHistory[];
-  coin2Data: CoinHistory[];
-  coin1Symbol: string;
-  coin2Symbol: string;
+  coinsData: CoinHistory[][];
+  coinSymbols: string[];
 }
 
+const CHART_COLORS = [
+  "#6C5DD3",
+  "#118C4F",
+  "#FFB800",
+  "#FF4842",
+  "#00A76F",
+  "#7635DC",
+];
+
 export const CandlestickChart = ({
-  coin1Data,
-  coin2Data,
+  coinsData,
+  coinSymbols,
 }: CandlestickChartProps) => {
-  const processData = (data: CoinHistory[]) => {
-    return data.map((point) => ({
-      time: new Date(point.time).toLocaleDateString(),
-      value: parseFloat(point.priceUsd),
-      high: parseFloat(point.priceUsd) * 1.02, // Simulated high
-      low: parseFloat(point.priceUsd) * 0.98, // Simulated low
-    }));
+  const processData = (data: CoinHistory[][]) => {
+    if (!data[0]?.length) return [];
+    
+    return data[0].map((_, timeIndex) => {
+      const point: any = {
+        time: new Date(data[0][timeIndex].time).toLocaleDateString(),
+      };
+      
+      data.forEach((coinData, coinIndex) => {
+        point[coinSymbols[coinIndex]] = parseFloat(coinData[timeIndex]?.priceUsd || '0');
+      });
+      
+      return point;
+    });
   };
 
-  const chartData = processData(coin1Data);
+  const chartData = processData(coinsData);
 
   return (
     <div className="w-full h-[400px] glass-card p-6">
@@ -40,12 +55,7 @@ export const CandlestickChart = ({
             fontSize={12}
             tickLine={false}
           />
-          <YAxis
-            stroke="#9ca3af"
-            fontSize={12}
-            tickLine={false}
-            domain={["dataMin", "dataMax"]}
-          />
+          <YAxis stroke="#9ca3af" fontSize={12} tickLine={false} />
           <Tooltip
             contentStyle={{
               backgroundColor: "#2D2A3D",
@@ -55,18 +65,14 @@ export const CandlestickChart = ({
             }}
             labelStyle={{ color: "#9ca3af" }}
           />
-          <Bar
-            dataKey="high"
-            fill="#6C5DD3"
-            stroke="#6C5DD3"
-            isAnimationActive={false}
-          />
-          <Bar
-            dataKey="low"
-            fill="#118C4F"
-            stroke="#118C4F"
-            isAnimationActive={false}
-          />
+          <Legend />
+          {coinSymbols.map((symbol, index) => (
+            <Bar
+              key={symbol}
+              dataKey={symbol}
+              fill={CHART_COLORS[index % CHART_COLORS.length]}
+            />
+          ))}
         </ComposedChart>
       </ResponsiveContainer>
     </div>

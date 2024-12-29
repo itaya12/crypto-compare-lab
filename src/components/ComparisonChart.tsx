@@ -54,7 +54,6 @@ export const ComparisonChart = ({
 
   const normalizedData = coinsData.map(data => normalizeData(data));
 
-  // Merge data points
   const mergedData = normalizedData[0].map((point, timeIndex) => {
     const dataPoint: { [key: string]: any } = {
       time: point.time,
@@ -66,8 +65,7 @@ export const ComparisonChart = ({
   });
 
   const renderChart = () => {
-    // Ensure we have at least two coins' data
-    if (coinsData.length < 2 || !coinsData[0] || !coinsData[1]) {
+    if (coinsData.length === 0) {
       return <div>Insufficient data for comparison</div>;
     }
 
@@ -75,46 +73,36 @@ export const ComparisonChart = ({
       case "candlestick":
         return (
           <CandlestickChart
-            coin1Data={coinsData[0]}
-            coin2Data={coinsData[1]}
-            coin1Symbol={coinSymbols[0]}
-            coin2Symbol={coinSymbols[1]}
+            coinsData={coinsData}
+            coinSymbols={coinSymbols}
           />
         );
       case "bar":
         return (
           <BarChart
-            coin1Data={coinsData[0]}
-            coin2Data={coinsData[1]}
-            coin1Symbol={coinSymbols[0]}
-            coin2Symbol={coinSymbols[1]}
+            coinsData={coinsData}
+            coinSymbols={coinSymbols}
           />
         );
       case "pie":
         return (
           <PieChart
-            coin1Data={coinsData[0]}
-            coin2Data={coinsData[1]}
-            coin1Symbol={coinSymbols[0]}
-            coin2Symbol={coinSymbols[1]}
+            coinsData={coinsData}
+            coinSymbols={coinSymbols}
           />
         );
       case "area":
         return (
           <AreaChart
-            coin1Data={coinsData[0]}
-            coin2Data={coinsData[1]}
-            coin1Symbol={coinSymbols[0]}
-            coin2Symbol={coinSymbols[1]}
+            coinsData={coinsData}
+            coinSymbols={coinSymbols}
           />
         );
       case "radar":
         return (
           <RadarChart
-            coin1Data={coinsData[0]}
-            coin2Data={coinsData[1]}
-            coin1Symbol={coinSymbols[0]}
-            coin2Symbol={coinSymbols[1]}
+            coinsData={coinsData}
+            coinSymbols={coinSymbols}
           />
         );
       default:

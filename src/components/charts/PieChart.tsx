@@ -2,28 +2,31 @@ import { PieChart as RechartsPieChart, Pie, Cell, ResponsiveContainer, Tooltip, 
 import { CoinHistory } from "@/services/api";
 
 interface PieChartProps {
-  coin1Data: CoinHistory[];
-  coin2Data: CoinHistory[];
-  coin1Symbol: string;
-  coin2Symbol: string;
+  coinsData: CoinHistory[][];
+  coinSymbols: string[];
 }
 
+const CHART_COLORS = [
+  "#6C5DD3",
+  "#118C4F",
+  "#FFB800",
+  "#FF4842",
+  "#00A76F",
+  "#7635DC",
+];
+
 export const PieChart = ({
-  coin1Data,
-  coin2Data,
-  coin1Symbol,
-  coin2Symbol,
+  coinsData,
+  coinSymbols,
 }: PieChartProps) => {
-  const getLatestValue = (data: CoinHistory[]) => {
-    return data.length > 0 ? parseFloat(data[data.length - 1].priceUsd) : 0;
+  const getLatestValues = () => {
+    return coinsData.map((coinData, index) => ({
+      name: coinSymbols[index],
+      value: coinData.length > 0 ? parseFloat(coinData[coinData.length - 1].priceUsd) : 0,
+    }));
   };
 
-  const data = [
-    { name: `${coin1Symbol} Price`, value: getLatestValue(coin1Data) },
-    { name: `${coin2Symbol} Price`, value: getLatestValue(coin2Data) },
-  ];
-
-  const COLORS = ["#6C5DD3", "#118C4F"];
+  const data = getLatestValues();
 
   const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent, index }: any) => {
     const RADIAN = Math.PI / 180;
@@ -58,8 +61,8 @@ export const PieChart = ({
             fill="#8884d8"
             dataKey="value"
           >
-            {data.map((entry, index) => (
-              <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+            {data.map((_, index) => (
+              <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
             ))}
           </Pie>
           <Tooltip

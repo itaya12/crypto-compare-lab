@@ -10,17 +10,22 @@ import {
 import { CoinHistory } from "@/services/api";
 
 interface RadarChartProps {
-  coin1Data: CoinHistory[];
-  coin2Data: CoinHistory[];
-  coin1Symbol: string;
-  coin2Symbol: string;
+  coinsData: CoinHistory[][];
+  coinSymbols: string[];
 }
 
+const CHART_COLORS = [
+  "#6C5DD3",
+  "#118C4F",
+  "#FFB800",
+  "#FF4842",
+  "#00A76F",
+  "#7635DC",
+];
+
 export const RadarChart = ({
-  coin1Data,
-  coin2Data,
-  coin1Symbol,
-  coin2Symbol,
+  coinsData,
+  coinSymbols,
 }: RadarChartProps) => {
   const getLatestMetrics = (data: CoinHistory[]) => {
     const latest = data[data.length - 1];
@@ -28,48 +33,50 @@ export const RadarChart = ({
 
     return {
       price: parseFloat(latest.priceUsd),
-      volume: parseFloat(latest.date || "0"), // Using date as a placeholder for volume
+      volume: parseFloat(latest.date || "0"),
       supply: parseFloat(latest.circulatingSupply || "0"),
       marketCap: parseFloat(latest.marketCap || "0"),
     };
   };
 
-  const coin1Metrics = getLatestMetrics(coin1Data);
-  const coin2Metrics = getLatestMetrics(coin2Data);
-
-  if (!coin1Metrics || !coin2Metrics) return null;
-
-  // Normalize values between 0 and 100 for better visualization
   const normalizeValue = (value: number, maxValue: number) =>
     (value / maxValue) * 100;
 
+  const metrics = coinsData.map(coinData => getLatestMetrics(coinData)).filter(Boolean);
+  
+  if (metrics.length === 0) return null;
+
   const maxValues = {
-    price: Math.max(coin1Metrics.price, coin2Metrics.price),
-    volume: Math.max(coin1Metrics.volume, coin2Metrics.volume),
-    supply: Math.max(coin1Metrics.supply, coin2Metrics.supply),
-    marketCap: Math.max(coin1Metrics.marketCap, coin2Metrics.marketCap),
+    price: Math.max(...metrics.map(m => m!.price)),
+    volume: Math.max(...metrics.map(m => m!.volume)),
+    supply: Math.max(...metrics.map(m => m!.supply)),
+    marketCap: Math.max(...metrics.map(m => m!.marketCap)),
   };
 
   const data = [
     {
       metric: "Price",
-      [coin1Symbol]: normalizeValue(coin1Metrics.price, maxValues.price),
-      [coin2Symbol]: normalizeValue(coin2Metrics.price, maxValues.price),
+      ...Object.fromEntries(
+        metrics.map((m, i) => [coinSymbols[i], normalizeValue(m!.price, maxValues.price)])
+      ),
     },
     {
       metric: "Volume",
-      [coin1Symbol]: normalizeValue(coin1Metrics.volume, maxValues.volume),
-      [coin2Symbol]: normalizeValue(coin2Metrics.volume, maxValues.volume),
+      ...Object.fromEntries(
+        metrics.map((m, i) => [coinSymbols[i], normalizeValue(m!.volume, maxValues.volume)])
+      ),
     },
     {
       metric: "Supply",
-      [coin1Symbol]: normalizeValue(coin1Metrics.supply, maxValues.supply),
-      [coin2Symbol]: normalizeValue(coin2Metrics.supply, maxValues.supply),
+      ...Object.fromEntries(
+        metrics.map((m, i) => [coinSymbols[i], normalizeValue(m!.supply, maxValues.supply)])
+      ),
     },
     {
       metric: "Market Cap",
-      [coin1Symbol]: normalizeValue(coin1Metrics.marketCap, maxValues.marketCap),
-      [coin2Symbol]: normalizeValue(coin2Metrics.marketCap, maxValues.marketCap),
+      ...Object.fromEntries(
+        metrics.map((m, i) => [coinSymbols[i], normalizeValue(m!.marketCap, maxValues.marketCap)])
+      ),
     },
   ];
 
@@ -83,20 +90,16 @@ export const RadarChart = ({
             tick={{ fill: "#9ca3af", fontSize: 12 }}
           />
           <PolarRadiusAxis angle={30} domain={[0, 100]} tick={{ fill: "#9ca3af" }} />
-          <Radar
-            name={coin1Symbol}
-            dataKey={coin1Symbol}
-            stroke="#6C5DD3"
-            fill="#6C5DD3"
-            fillOpacity={0.3}
-          />
-          <Radar
-            name={coin2Symbol}
-            dataKey={coin2Symbol}
-            stroke="#118C4F"
-            fill="#118C4F"
-            fillOpacity={0.3}
-          />
+          {coinSymbols.map((symbol, index) => (
+            <Radar
+              key={symbol}
+              name={symbol}
+              dataKey={symbol}
+              stroke={CHART_COLORS[index % CHART_COLORS.length]}
+              fill={CHART_COLORS[index % CHART_COLORS.length]}
+              fillOpacity={0.3}
+            />
+          ))}
           <Legend />
         </RechartsRadarChart>
       </ResponsiveContainer>
