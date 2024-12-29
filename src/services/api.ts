@@ -1,5 +1,3 @@
-import { toast } from "sonner";
-
 const BASE_URL = "https://api.coincap.io/v2";
 
 export interface Coin {
@@ -11,6 +9,8 @@ export interface Coin {
   marketCapUsd: string;
   volumeUsd24Hr: string;
   changePercent24Hr: string;
+  supply: string;
+  maxSupply: string | null;
 }
 
 export interface CoinHistory {
