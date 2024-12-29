@@ -19,7 +19,7 @@ export interface CoinHistory {
   date?: string;
   circulatingSupply?: string;
   marketCap?: string;
-  volumeUsd24Hr?: string;  // Added this property
+  volumeUsd24Hr?: string;
 }
 
 export const fetchTopCoins = async (): Promise<Coin[]> => {
@@ -40,15 +40,22 @@ export const fetchCoinHistory = async (
   interval: string = "h1",
 ): Promise<CoinHistory[]> => {
   try {
-    const response = await fetch(
+    // First, get the current data for the coin to get the latest volume
+    const currentResponse = await fetch(`${BASE_URL}/assets/${coinId}`);
+    const currentData = await currentResponse.json();
+    const currentVolume = currentData.data?.volumeUsd24Hr || "0";
+
+    // Then get the historical price data
+    const historyResponse = await fetch(
       `${BASE_URL}/assets/${coinId}/history?interval=${interval}&start=${start}&end=${end}`
     );
-    const data = await response.json();
-    return data.data.map((item: any) => ({
+    const historyData = await historyResponse.json();
+
+    return historyData.data.map((item: any) => ({
       ...item,
       date: new Date(item.time).toLocaleDateString(),
       marketCap: item.priceUsd * item.circulatingSupply,
-      volumeUsd24Hr: item.volumeUsd24Hr || "0", // Added this property mapping
+      volumeUsd24Hr: currentVolume, // Use the current volume for historical entries
     }));
   } catch (error) {
     toast.error(`Failed to fetch history for ${coinId}`);
