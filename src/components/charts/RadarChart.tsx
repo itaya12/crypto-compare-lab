@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   RadarChart as RechartsRadarChart,
   PolarGrid,
@@ -6,6 +7,7 @@ import {
   Radar,
   ResponsiveContainer,
   Legend,
+  Tooltip,
 } from "recharts";
 import { CoinHistory } from "@/services/api";
 
@@ -15,18 +17,22 @@ interface RadarChartProps {
 }
 
 const CHART_COLORS = [
-  "#6C5DD3",
-  "#118C4F",
-  "#FFB800",
-  "#FF4842",
-  "#00A76F",
-  "#7635DC",
+  "#8B5CF6", // Vivid Purple
+  "#D946EF", // Magenta Pink
+  "#F97316", // Bright Orange
+  "#0EA5E9", // Ocean Blue
+  "#10B981", // Emerald
+  "#F59E0B", // Amber
+  "#6366F1", // Indigo
+  "#EC4899", // Pink
 ];
 
 export const RadarChart = ({
   coinsData,
   coinSymbols,
 }: RadarChartProps) => {
+  const [activeRadar, setActiveRadar] = useState<string | null>(null);
+
   const getLatestMetrics = (data: CoinHistory[]) => {
     const latest = data[data.length - 1];
     if (!latest) return null;
@@ -80,6 +86,22 @@ export const RadarChart = ({
     },
   ];
 
+  const CustomTooltip = ({ active, payload }: any) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="glass-card p-3">
+          <p className="text-sm font-semibold">{payload[0].payload.metric}</p>
+          {payload.map((entry: any) => (
+            <p key={entry.dataKey} className="text-xs" style={{ color: entry.color }}>
+              {`${entry.dataKey}: ${entry.value.toFixed(2)}%`}
+            </p>
+          ))}
+        </div>
+      );
+    }
+    return null;
+  };
+
   return (
     <div className="w-full h-[400px] glass-card p-6">
       <ResponsiveContainer width="100%" height="100%">
@@ -97,10 +119,16 @@ export const RadarChart = ({
               dataKey={symbol}
               stroke={CHART_COLORS[index % CHART_COLORS.length]}
               fill={CHART_COLORS[index % CHART_COLORS.length]}
-              fillOpacity={0.3}
+              fillOpacity={activeRadar === symbol ? 0.6 : 0.3}
+              onMouseEnter={() => setActiveRadar(symbol)}
+              onMouseLeave={() => setActiveRadar(null)}
             />
           ))}
-          <Legend />
+          <Tooltip content={<CustomTooltip />} />
+          <Legend 
+            onMouseEnter={(e) => setActiveRadar(e.value)}
+            onMouseLeave={() => setActiveRadar(null)}
+          />
         </RechartsRadarChart>
       </ResponsiveContainer>
     </div>

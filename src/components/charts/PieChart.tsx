@@ -1,4 +1,5 @@
-import { PieChart as RechartsPieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from "recharts";
+import { useState } from "react";
+import { PieChart as RechartsPieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend, Sector } from "recharts";
 import { CoinHistory } from "@/services/api";
 
 interface PieChartProps {
@@ -7,76 +8,96 @@ interface PieChartProps {
 }
 
 const CHART_COLORS = [
-  "#6C5DD3", // Vivid Purple
+  "#8B5CF6", // Vivid Purple
   "#D946EF", // Magenta Pink
   "#F97316", // Bright Orange
   "#0EA5E9", // Ocean Blue
-  "#8E9196", // Neutral Gray
-  "#E5DEFF", // Soft Purple
+  "#10B981", // Emerald
+  "#F59E0B", // Amber
+  "#6366F1", // Indigo
+  "#EC4899", // Pink
 ];
 
-export const PieChart = ({
-  coinsData,
-  coinSymbols,
-}: PieChartProps) => {
-  const calculateVolatility = (prices: number[]): number => {
-    if (prices.length < 2) return 0;
+const renderActiveShape = (props: any) => {
+  const RADIAN = Math.PI / 180;
+  const { cx, cy, midAngle, innerRadius, outerRadius, startAngle, endAngle, fill, payload, percent, value } = props;
+  const sin = Math.sin(-RADIAN * midAngle);
+  const cos = Math.cos(-RADIAN * midAngle);
+  const sx = cx + (outerRadius + 10) * cos;
+  const sy = cy + (outerRadius + 10) * sin;
+  const mx = cx + (outerRadius + 30) * cos;
+  const my = cy + (outerRadius + 30) * sin;
+  const ex = mx + (cos >= 0 ? 1 : -1) * 22;
+  const ey = my;
+  const textAnchor = cos >= 0 ? 'start' : 'end';
+
+  const volatility = parseFloat(value);
+  const formattedVolatility = `${volatility.toFixed(2)}%`;
+
+  return (
+    <g>
+      <text x={cx} y={cy} dy={8} textAnchor="middle" fill={fill}>
+        {payload.name}
+      </text>
+      <Sector
+        cx={cx}
+        cy={cy}
+        innerRadius={innerRadius}
+        outerRadius={outerRadius}
+        startAngle={startAngle}
+        endAngle={endAngle}
+        fill={fill}
+      />
+      <Sector
+        cx={cx}
+        cy={cy}
+        startAngle={startAngle}
+        endAngle={endAngle}
+        innerRadius={outerRadius + 6}
+        outerRadius={outerRadius + 10}
+        fill={fill}
+      />
+      <path d={`M${sx},${sy}L${mx},${my}L${ex},${ey}`} stroke={fill} fill="none" />
+      <circle cx={ex} cy={ey} r={2} fill={fill} stroke="none" />
+      <text x={ex + (cos >= 0 ? 1 : -1) * 12} y={ey} textAnchor={textAnchor} fill="#999">
+        {`Volatility: ${formattedVolatility}`}
+      </text>
+      <text x={ex + (cos >= 0 ? 1 : -1) * 12} y={ey} dy={18} textAnchor={textAnchor} fill="#999">
+        {`(${(percent * 100).toFixed(2)}%)`}
+      </text>
+    </g>
+  );
+};
+
+export const PieChart = ({ coinsData, coinSymbols }: PieChartProps) => {
+  const [activeIndex, setActiveIndex] = useState<number | null>(null);
+
+  const calculateVolatility = (data: CoinHistory[]): number => {
+    if (data.length < 2) return 0;
     
-    // Calculate daily returns
-    const returns = prices.slice(1).map((price, index) => {
-      const previousPrice = prices[index];
-      return ((price - previousPrice) / previousPrice) * 100;
-    });
+    const prices = data.map(item => parseFloat(item.priceUsd));
+    const returns = prices.slice(1).map((price, i) => 
+      ((price - prices[i]) / prices[i]) * 100
+    );
     
-    // Calculate standard deviation (volatility)
-    const mean = returns.reduce((sum, value) => sum + value, 0) / returns.length;
-    const squaredDiffs = returns.map(value => Math.pow(value - mean, 2));
-    const variance = squaredDiffs.reduce((sum, value) => sum + value, 0) / returns.length;
+    const meanReturn = returns.reduce((sum, ret) => sum + ret, 0) / returns.length;
+    const squaredDiffs = returns.map(ret => Math.pow(ret - meanReturn, 2));
+    const variance = squaredDiffs.reduce((sum, diff) => sum + diff, 0) / returns.length;
+    
     return Math.sqrt(variance);
   };
 
-  const getVolatilityData = () => {
-    return coinsData.map((coinData, index) => {
-      const prices = coinData.map(data => parseFloat(data.priceUsd));
-      const volatility = calculateVolatility(prices);
-      return {
-        name: coinSymbols[index],
-        value: volatility,
-      };
-    });
+  const data = coinsData.map((coinData, index) => ({
+    name: coinSymbols[index],
+    value: calculateVolatility(coinData),
+  }));
+
+  const onPieEnter = (_: any, index: number) => {
+    setActiveIndex(index);
   };
 
-  const data = getVolatilityData();
-
-  const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent, index }: any) => {
-    const RADIAN = Math.PI / 180;
-    const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
-    const x = cx + radius * Math.cos(-midAngle * RADIAN);
-    const y = cy + radius * Math.sin(-midAngle * RADIAN);
-
-    return (
-      <text
-        x={x}
-        y={y}
-        fill="white"
-        textAnchor={x > cx ? 'start' : 'end'}
-        dominantBaseline="central"
-      >
-        {`${data[index].name} (${(percent * 100).toFixed(1)}%)`}
-      </text>
-    );
-  };
-
-  const CustomTooltip = ({ active, payload }: any) => {
-    if (active && payload && payload.length) {
-      return (
-        <div className="glass-card p-2">
-          <p className="text-sm font-semibold">{`${payload[0].name}`}</p>
-          <p className="text-xs text-gray-300">{`Volatility: ${payload[0].value.toFixed(2)}%`}</p>
-        </div>
-      );
-    }
-    return null;
+  const onPieLeave = () => {
+    setActiveIndex(null);
   };
 
   return (
@@ -85,20 +106,28 @@ export const PieChart = ({
       <ResponsiveContainer width="100%" height="100%">
         <RechartsPieChart>
           <Pie
+            activeIndex={activeIndex}
+            activeShape={renderActiveShape}
             data={data}
             cx="50%"
             cy="50%"
-            labelLine={false}
-            label={renderCustomizedLabel}
-            outerRadius={150}
+            innerRadius={60}
+            outerRadius={80}
             fill="#8884d8"
             dataKey="value"
+            onMouseEnter={onPieEnter}
+            onMouseLeave={onPieLeave}
           >
             {data.map((_, index) => (
-              <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
+              <Cell 
+                key={`cell-${index}`} 
+                fill={CHART_COLORS[index % CHART_COLORS.length]}
+                stroke="rgba(255,255,255,0.2)"
+                strokeWidth={1}
+              />
             ))}
           </Pie>
-          <Tooltip content={<CustomTooltip />} />
+          <Tooltip />
           <Legend />
         </RechartsPieChart>
       </ResponsiveContainer>
