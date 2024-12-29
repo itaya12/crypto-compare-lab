@@ -1,3 +1,5 @@
+import { toast } from "sonner";
+
 const BASE_URL = "https://api.coincap.io/v2";
 
 export interface Coin {

@@ -2,9 +2,9 @@ import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Coin, fetchTopCoins, fetchCoinHistory } from "@/services/api";
 import { CoinSelector } from "@/components/CoinSelector";
-import { ComparisonChart } from "@/components/ComparisonChart";
 import { CoinStats } from "@/components/CoinStats";
 import { GeneralTableDescription } from "@/components/GeneralTableDescription";
+import { ChartSection } from "@/components/ChartSection";
 import { Share2, Plus, X, Calendar } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -220,19 +220,11 @@ const Index = () => {
           {selectedCoins.every(coin => coin) && (
             <div className="space-y-8">
               <GeneralTableDescription coins={selectedCoins.filter((coin): coin is Coin => coin !== null)} />
-              
-              <div className="space-y-24">
-                {chartTypes.map((chartType) => (
-                  <div key={chartType} className="scroll-mt-8" id={chartType}>
-                    <h2 className="text-2xl font-bold mb-6 capitalize">{chartType} Chart</h2>
-                    <ComparisonChart
-                      coinsData={coinsHistory}
-                      coinSymbols={selectedCoins.map(coin => coin?.symbol || "")}
-                      defaultChartType={chartType}
-                    />
-                  </div>
-                ))}
-              </div>
+              <ChartSection
+                coinsHistory={coinsHistory}
+                coinSymbols={selectedCoins.map(coin => coin?.symbol || "")}
+                chartTypes={chartTypes}
+              />
             </div>
           )}
         </div>
