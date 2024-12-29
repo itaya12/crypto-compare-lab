@@ -12,7 +12,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { format } from "date-fns";
 
 const Index = () => {
-  const [selectedCoins, setSelectedCoins] = useState<(Coin | null)[]>([null, null]);
+  const [selectedCoins, setSelectedCoins] = useState<(Coin | null)[]>([null, null, null]);
   const [showComparison, setShowComparison] = useState(false);
   const [additionalCoins, setAdditionalCoins] = useState<(Coin | null)[]>([]);
   const [startDate, setStartDate] = useState<Date>(new Date(Date.now() - 7 * 24 * 60 * 60 * 1000));
@@ -22,6 +22,18 @@ const Index = () => {
     queryKey: ["coins"],
     queryFn: fetchTopCoins,
   });
+
+  useEffect(() => {
+    if (coins.length > 0) {
+      const bitcoin = coins.find((coin) => coin.symbol === "BTC");
+      const ethereum = coins.find((coin) => coin.symbol === "ETH");
+      const ripple = coins.find((coin) => coin.symbol === "XRP");
+      
+      if (bitcoin && ethereum && ripple) {
+        setSelectedCoins([bitcoin, ethereum, ripple]);
+      }
+    }
+  }, [coins]);
 
   // Create fixed queries for maximum possible coins (e.g., 5)
   const queries = [0, 1, 2, 3, 4].map(index => {
@@ -37,15 +49,12 @@ const Index = () => {
   const coinsHistory = selectedCoins.map((_, index) => queries[index].data || []);
 
   useEffect(() => {
-    if (coins.length > 0) {
-      const bitcoin = coins.find((coin) => coin.symbol === "BTC");
-      const ethereum = coins.find((coin) => coin.symbol === "ETH");
-      
-      if (bitcoin && ethereum) {
-        setSelectedCoins([bitcoin, ethereum]);
-      }
+    if (selectedCoins.length >= 2 && selectedCoins.every(coin => coin)) {
+      setShowComparison(true);
+    } else {
+      setShowComparison(false);
     }
-  }, [coins]);
+  }, [selectedCoins]);
 
   const handleShare = () => {
     if (selectedCoins.every(coin => coin)) {
@@ -83,14 +92,6 @@ const Index = () => {
     setAdditionalCoins([]);
     setShowComparison(true);
   };
-
-  useEffect(() => {
-    if (selectedCoins.length >= 2 && selectedCoins.every(coin => coin)) {
-      setShowComparison(true);
-    } else {
-      setShowComparison(false);
-    }
-  }, [selectedCoins]);
 
   return (
     <div className="min-h-screen p-6 md:p-8 space-y-8 max-w-7xl mx-auto">
