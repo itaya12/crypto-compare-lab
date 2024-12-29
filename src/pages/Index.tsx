@@ -213,11 +213,11 @@ const Index = () => {
 
           {selectedCoins.every(coin => coin) && (
             <div className="space-y-8">
-              <GeneralTableDescription coins={selectedCoins.filter((coin): coin is Coin => coin !== null)} />
               <ChartSection
                 coinsHistory={coinsHistory}
                 coinSymbols={selectedCoins.map(coin => coin?.symbol || "")}
               />
+              <GeneralTableDescription coins={selectedCoins.filter((coin): coin is Coin => coin !== null)} />
             </div>
           )}
         </div>
