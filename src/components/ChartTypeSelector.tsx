@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 
-type ChartType = "line" | "candlestick" | "bar" | "pie" | "heatmap" | "scatter" | "area" | "radar";
+type ChartType = "line" | "pie" | "heatmap" | "scatter" | "radar";
 
 interface ChartTypeSelectorProps {
   selectedType: ChartType;
@@ -13,12 +13,9 @@ export const ChartTypeSelector = ({
 }: ChartTypeSelectorProps) => {
   const chartTypes: ChartType[] = [
     "line",
-    "candlestick",
-    "bar",
     "pie",
     "heatmap",
     "scatter",
-    "area",
     "radar",
   ];
 

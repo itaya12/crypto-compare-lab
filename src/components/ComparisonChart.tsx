@@ -9,17 +9,14 @@ import {
   Legend,
 } from "recharts";
 import { CoinHistory } from "@/services/api";
-import { CandlestickChart } from "./charts/CandlestickChart";
-import { BarChart } from "./charts/BarChart";
 import { PieChart } from "./charts/PieChart";
 import { TradingVolumePieChart } from "./charts/TradingVolumePieChart";
-import { AreaChart } from "./charts/AreaChart";
 import { RadarChart } from "./charts/RadarChart";
 
 interface ComparisonChartProps {
   coinsData: CoinHistory[][];
   coinSymbols: string[];
-  defaultChartType?: "line" | "candlestick" | "bar" | "pie" | "area" | "radar";
+  defaultChartType?: "line" | "pie" | "radar";
 }
 
 const CHART_COLORS = [
@@ -36,9 +33,7 @@ export const ComparisonChart = ({
   coinSymbols,
   defaultChartType = "line",
 }: ComparisonChartProps) => {
-  const [chartType, setChartType] = useState<
-    "line" | "candlestick" | "bar" | "pie" | "area" | "radar"
-  >(defaultChartType);
+  const [chartType, setChartType] = useState<"line" | "pie" | "radar">(defaultChartType);
 
   useEffect(() => {
     setChartType(defaultChartType);
@@ -71,20 +66,6 @@ export const ComparisonChart = ({
     }
 
     switch (chartType) {
-      case "candlestick":
-        return (
-          <CandlestickChart
-            coinsData={coinsData}
-            coinSymbols={coinSymbols}
-          />
-        );
-      case "bar":
-        return (
-          <BarChart
-            coinsData={coinsData}
-            coinSymbols={coinSymbols}
-          />
-        );
       case "pie":
         return (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -97,13 +78,6 @@ export const ComparisonChart = ({
               coinSymbols={coinSymbols}
             />
           </div>
-        );
-      case "area":
-        return (
-          <AreaChart
-            coinsData={coinsData}
-            coinSymbols={coinSymbols}
-          />
         );
       case "radar":
         return (
