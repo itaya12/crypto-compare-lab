@@ -16,6 +16,9 @@ export interface Coin {
 export interface CoinHistory {
   priceUsd: string;
   time: number;
+  date?: string;
+  circulatingSupply?: string;
+  marketCap?: string;
 }
 
 export const fetchTopCoins = async (): Promise<Coin[]> => {
@@ -40,7 +43,11 @@ export const fetchCoinHistory = async (
       `${BASE_URL}/assets/${coinId}/history?interval=${interval}&start=${start}&end=${end}`
     );
     const data = await response.json();
-    return data.data;
+    return data.data.map((item: any) => ({
+      ...item,
+      date: new Date(item.time).toLocaleDateString(),
+      marketCap: item.priceUsd * item.circulatingSupply,
+    }));
   } catch (error) {
     toast.error(`Failed to fetch history for ${coinId}`);
     return [];
