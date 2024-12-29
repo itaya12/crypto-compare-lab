@@ -12,6 +12,7 @@ import { CoinHistory } from "@/services/api";
 import { CandlestickChart } from "./charts/CandlestickChart";
 import { BarChart } from "./charts/BarChart";
 import { PieChart } from "./charts/PieChart";
+import { TradingVolumePieChart } from "./charts/TradingVolumePieChart";
 import { AreaChart } from "./charts/AreaChart";
 import { RadarChart } from "./charts/RadarChart";
 
@@ -86,10 +87,16 @@ export const ComparisonChart = ({
         );
       case "pie":
         return (
-          <PieChart
-            coinsData={coinsData}
-            coinSymbols={coinSymbols}
-          />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <PieChart
+              coinsData={coinsData}
+              coinSymbols={coinSymbols}
+            />
+            <TradingVolumePieChart
+              coinsData={coinsData}
+              coinSymbols={coinSymbols}
+            />
+          </div>
         );
       case "area":
         return (
