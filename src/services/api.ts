@@ -37,12 +37,37 @@ const validateCoinData = (coin: any): boolean => {
   );
 };
 
+const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+const fetchWithRetry = async (url: string, retries = 3, backoff = 1000) => {
+  for (let i = 0; i < retries; i++) {
+    try {
+      const response = await fetch(url);
+      if (response.status === 429) {
+        console.warn(`Rate limited, attempt ${i + 1} of ${retries}. Waiting ${backoff}ms...`);
+        await delay(backoff);
+        backoff *= 2; // Exponential backoff
+        continue;
+      }
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return response;
+    } catch (error) {
+      if (i === retries - 1) throw error;
+      await delay(backoff);
+      backoff *= 2;
+    }
+  }
+  throw new Error('Max retries reached');
+};
+
 const fetchCoinImage = async (coinId: string): Promise<string | null> => {
   try {
-    const response = await fetch(
+    const response = await fetchWithRetry(
       `${COINGECKO_URL}/simple/price?ids=${coinId.toLowerCase()}&include_24hr_change=false`
     );
-    if (!response.ok) return null;
+    if (!response) return null;
     
     const imageUrl = `https://assets.coingecko.com/coins/images/1/small/${coinId.toLowerCase()}.png`;
     return imageUrl;
@@ -54,19 +79,20 @@ const fetchCoinImage = async (coinId: string): Promise<string | null> => {
 
 export const fetchTopCoins = async (): Promise<Coin[]> => {
   try {
-    const response = await fetch(`${BASE_URL}/assets?limit=2000`);
-    const data = await response.json();
-    
-    if (!response.ok) {
+    const response = await fetchWithRetry(`${BASE_URL}/assets?limit=2000`);
+    if (!response) {
       throw new Error('Failed to fetch coins');
     }
     
+    const data = await response.json();
     const validCoins = data.data.filter(validateCoinData);
     console.log(`Fetched ${validCoins.length} valid coins out of ${data.data.length} total coins`);
     
-    // Fetch images for each coin
+    // Fetch images for each coin with rate limiting
     const coinsWithImages = await Promise.all(
-      validCoins.map(async (coin: Coin) => {
+      validCoins.map(async (coin: Coin, index: number) => {
+        // Add delay between image requests to avoid rate limiting
+        await delay(index * 100);
         const imageUrl = await fetchCoinImage(coin.id);
         return {
           ...coin,
@@ -96,23 +122,27 @@ export const fetchCoinHistory = async (
 ): Promise<CoinHistory[]> => {
   try {
     // First, get the current data for the coin to get the latest volume
-    const currentResponse = await fetch(`${BASE_URL}/assets/${coinId}`);
-    const currentData = await currentResponse.json();
-    
-    if (!currentResponse.ok || !currentData.data) {
+    const currentResponse = await fetchWithRetry(`${BASE_URL}/assets/${coinId}`);
+    if (!currentResponse) {
       console.warn(`No current data available for ${coinId}`);
       return [];
     }
-
+    
+    const currentData = await currentResponse.json();
     const currentVolume = currentData.data?.volumeUsd24Hr || "0";
 
     // Then get the historical price data
-    const historyResponse = await fetch(
+    const historyResponse = await fetchWithRetry(
       `${BASE_URL}/assets/${coinId}/history?interval=${interval}&start=${start}&end=${end}`
     );
+    if (!historyResponse) {
+      console.warn(`No historical data available for ${coinId}`);
+      return [];
+    }
+    
     const historyData = await historyResponse.json();
 
-    if (!historyResponse.ok || !historyData.data || historyData.data.length === 0) {
+    if (!historyData.data || historyData.data.length === 0) {
       console.warn(`No historical data available for ${coinId}`);
       toast.error(`No historical data available for ${coinId}`);
       return [];

@@ -5,6 +5,7 @@ export const LiveTicker = () => {
   const { data: coins = [] } = useQuery({
     queryKey: ["topCoins"],
     queryFn: fetchTopCoins,
+    refetchInterval: 30000, // Refetch every 30 seconds to avoid rate limiting
   });
 
   const top15Coins = coins.slice(0, 15);
@@ -15,9 +16,9 @@ export const LiveTicker = () => {
         {top15Coins.map((coin, index) => (
           <span key={coin.id} className="inline-block mx-4">
             <span className="font-medium">{coin.symbol.toUpperCase()}</span>
-            <span className={`ml-2 ${coin.priceChangePercentage24h >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-              ${coin.currentPrice.toLocaleString()} 
-              ({coin.priceChangePercentage24h.toFixed(2)}%)
+            <span className={`ml-2 ${parseFloat(coin.changePercent24Hr) >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+              ${parseFloat(coin.priceUsd).toLocaleString()} 
+              ({parseFloat(coin.changePercent24Hr).toFixed(2)}%)
             </span>
           </span>
         ))}
