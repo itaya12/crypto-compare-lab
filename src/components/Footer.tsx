@@ -42,8 +42,13 @@ export const Footer = () => {
             </div>
           </div>
           
-          <div className="mt-8 pt-8 border-t border-white/10 text-center text-sm text-gray-400">
-            © {new Date().getFullYear()} Crypto Compare. All rights reserved.
+          <div className="mt-8 pt-4 border-t border-white/10">
+            <p className="text-red-400 text-sm mb-4 font-medium">
+              ⚠️ Warning: Cryptocurrency trading involves substantial risk and may not be suitable for everyone. The high degree of leverage can work against you as well as for you. Before deciding to trade cryptocurrencies you should carefully consider your investment objectives, level of experience, and risk appetite.
+            </p>
+            <p className="text-center text-sm text-gray-400">
+              © {new Date().getFullYear()} Crypto Compare. All rights reserved.
+            </p>
           </div>
         </div>
       </div>
