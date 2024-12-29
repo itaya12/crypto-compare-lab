@@ -1,5 +1,6 @@
-import { PieChart as RechartsPieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from "recharts";
+import { PieChart as RechartsPieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend, Sector } from "recharts";
 import { CoinHistory } from "@/services/api";
+import { useState } from "react";
 
 interface TradingVolumePieChartProps {
   coinsData: CoinHistory[][];
@@ -21,6 +22,8 @@ export const TradingVolumePieChart = ({
   coinsData,
   coinSymbols,
 }: TradingVolumePieChartProps) => {
+  const [activeIndex, setActiveIndex] = useState<number | null>(null);
+
   const calculateAverageVolume = (data: CoinHistory[]): number => {
     if (data.length === 0) return 0;
     const volumes = data.map(item => parseFloat(item.volumeUsd24Hr || "0"));
@@ -77,6 +80,14 @@ export const TradingVolumePieChart = ({
     return null;
   };
 
+  const onPieEnter = (_: any, index: number) => {
+    setActiveIndex(index);
+  };
+
+  const onPieLeave = () => {
+    setActiveIndex(null);
+  };
+
   return (
     <div className="w-full h-[400px] glass-card p-6">
       <h3 className="text-lg font-semibold mb-4 text-center">Trading Volume</h3>
@@ -91,6 +102,62 @@ export const TradingVolumePieChart = ({
             outerRadius={150}
             fill="#8884d8"
             dataKey="value"
+            onMouseEnter={onPieEnter}
+            onMouseLeave={onPieLeave}
+            activeIndex={activeIndex}
+            activeShape={(props) => {
+              const RADIAN = Math.PI / 180;
+              const { cx, cy, midAngle, innerRadius, outerRadius, startAngle, endAngle, fill, payload, percent, value } = props;
+              const sin = Math.sin(-RADIAN * midAngle);
+              const cos = Math.cos(-RADIAN * midAngle);
+              const sx = cx + (outerRadius + 10) * cos;
+              const sy = cy + (outerRadius + 10) * sin;
+              const mx = cx + (outerRadius + 30) * cos;
+              const my = cy + (outerRadius + 30) * sin;
+              const ex = mx + (cos >= 0 ? 1 : -1) * 22;
+              const ey = my;
+              const textAnchor = cos >= 0 ? 'start' : 'end';
+              const volume = parseFloat(value);
+              const formattedVolume = volume >= 1e9 
+                ? `$${(volume / 1e9).toFixed(2)}B`
+                : volume >= 1e6
+                ? `$${(volume / 1e6).toFixed(2)}M`
+                : `$${volume.toFixed(2)}`;
+
+              return (
+                <g>
+                  <text x={cx} y={cy} dy={8} textAnchor="middle" fill={fill}>
+                    {payload.name}
+                  </text>
+                  <Sector
+                    cx={cx}
+                    cy={cy}
+                    innerRadius={innerRadius}
+                    outerRadius={outerRadius + 10}
+                    startAngle={startAngle}
+                    endAngle={endAngle}
+                    fill={fill}
+                  />
+                  <Sector
+                    cx={cx}
+                    cy={cy}
+                    startAngle={startAngle}
+                    endAngle={endAngle}
+                    innerRadius={outerRadius + 6}
+                    outerRadius={outerRadius + 10}
+                    fill={fill}
+                  />
+                  <path d={`M${sx},${sy}L${mx},${my}L${ex},${ey}`} stroke={fill} fill="none" />
+                  <circle cx={ex} cy={ey} r={2} fill={fill} stroke="none" />
+                  <text x={ex + (cos >= 0 ? 1 : -1) * 12} y={ey} textAnchor={textAnchor} fill="#999">
+                    {`Volume: ${formattedVolume}`}
+                  </text>
+                  <text x={ex + (cos >= 0 ? 1 : -1) * 12} y={ey} dy={18} textAnchor={textAnchor} fill="#999">
+                    {`(${(percent * 100).toFixed(2)}%)`}
+                  </text>
+                </g>
+              );
+            }}
           >
             {data.map((_, index) => (
               <Cell 
