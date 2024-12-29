@@ -153,7 +153,7 @@ export const SingleCoinPriceChart = ({
               cursor={{ stroke: color, strokeWidth: 1, strokeDasharray: '5 5' }}
             />
             <Line
-              type="monotone"
+              type="natural"
               dataKey="price"
               stroke={color}
               strokeWidth={2}
