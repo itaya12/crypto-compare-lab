@@ -29,16 +29,21 @@ export const SingleCoinPriceChart = ({
   const [hoveredPrice, setHoveredPrice] = useState<number | null>(null);
 
   const filterDataByTimeFrame = (data: CoinHistory[], frame: TimeFrame) => {
-    const now = Date.now();
+    const now = new Date();
     const timeFrames = {
-      "1w": 7 * 24 * 60 * 60 * 1000,
-      "1m": 30 * 24 * 60 * 60 * 1000,
-      "6m": 180 * 24 * 60 * 60 * 1000
+      "1w": 7,
+      "1m": 30,
+      "6m": 180
     };
     
-    return data.filter(point => 
-      now - new Date(point.time).getTime() <= timeFrames[frame]
-    );
+    const daysToSubtract = timeFrames[frame];
+    const startDate = new Date(now);
+    startDate.setDate(startDate.getDate() - daysToSubtract);
+    
+    return data.filter(point => {
+      const pointDate = new Date(point.time);
+      return pointDate >= startDate && pointDate <= now;
+    });
   };
 
   const filteredData = filterDataByTimeFrame(coinData, timeFrame);
