@@ -10,28 +10,25 @@ import { Button } from "@/components/ui/button";
 
 const Index = () => {
   const [selectedCoins, setSelectedCoins] = useState<(Coin | null)[]>([null, null]);
+  const [showComparison, setShowComparison] = useState(false);
 
   const { data: coins = [] } = useQuery({
     queryKey: ["coins"],
     queryFn: fetchTopCoins,
   });
 
-  // Create an array of query keys for all possible selected coins
-  const queryKeys = selectedCoins.map((coin) => 
-    coin ? ["coinHistory", coin.id] : null
-  );
+  // Create fixed queries for maximum possible coins (e.g., 5)
+  const queries = [0, 1, 2, 3, 4].map(index => {
+    const coinId = selectedCoins[index]?.id;
+    return useQuery({
+      queryKey: ["coinHistory", coinId],
+      queryFn: () => fetchCoinHistory(coinId || ""),
+      enabled: !!coinId,
+    });
+  });
 
-  // Create individual queries for each coin
-  const queries = queryKeys.map((key) => 
-    useQuery({
-      queryKey: key,
-      queryFn: () => fetchCoinHistory(key?.[1] || ""),
-      enabled: !!key,
-    })
-  );
-
-  // Extract the history data from queries
-  const coinsHistory = queries.map(query => query.data || []);
+  // Extract history data only for selected coins
+  const coinsHistory = selectedCoins.map((_, index) => queries[index].data || []);
 
   useEffect(() => {
     if (coins.length > 0) {
@@ -79,8 +76,6 @@ const Index = () => {
       setShowComparison(false);
     }
   }, [selectedCoins]);
-
-  const [showComparison, setShowComparison] = useState(false);
 
   const chartTypes = [
     "line",
