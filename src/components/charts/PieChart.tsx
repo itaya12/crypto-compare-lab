@@ -7,26 +7,46 @@ interface PieChartProps {
 }
 
 const CHART_COLORS = [
-  "#6C5DD3",
-  "#118C4F",
-  "#FFB800",
-  "#FF4842",
-  "#00A76F",
-  "#7635DC",
+  "#6C5DD3", // Vivid Purple
+  "#D946EF", // Magenta Pink
+  "#F97316", // Bright Orange
+  "#0EA5E9", // Ocean Blue
+  "#8E9196", // Neutral Gray
+  "#E5DEFF", // Soft Purple
 ];
 
 export const PieChart = ({
   coinsData,
   coinSymbols,
 }: PieChartProps) => {
-  const getLatestValues = () => {
-    return coinsData.map((coinData, index) => ({
-      name: coinSymbols[index],
-      value: coinData.length > 0 ? parseFloat(coinData[coinData.length - 1].priceUsd) : 0,
-    }));
+  const calculateVolatility = (prices: number[]): number => {
+    if (prices.length < 2) return 0;
+    
+    // Calculate daily returns
+    const returns = prices.slice(1).map((price, index) => {
+      const previousPrice = prices[index];
+      return ((price - previousPrice) / previousPrice) * 100;
+    });
+    
+    // Calculate standard deviation (volatility)
+    const mean = returns.reduce((sum, value) => sum + value, 0) / returns.length;
+    const squaredDiffs = returns.map(value => Math.pow(value - mean, 2));
+    const variance = squaredDiffs.reduce((sum, value) => sum + value, 0) / returns.length;
+    return Math.sqrt(variance);
   };
 
-  const data = getLatestValues();
+  const getVolatilityData = () => {
+    return coinsData.map((coinData, index) => {
+      const prices = coinData.map(data => parseFloat(data.priceUsd));
+      const volatility = calculateVolatility(prices);
+      return {
+        name: coinSymbols[index],
+        value: volatility,
+      };
+    });
+  };
+
+  const data = getVolatilityData();
 
   const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent, index }: any) => {
     const RADIAN = Math.PI / 180;
@@ -42,13 +62,26 @@ export const PieChart = ({
         textAnchor={x > cx ? 'start' : 'end'}
         dominantBaseline="central"
       >
-        {`${data[index].name} (${(percent * 100).toFixed(0)}%)`}
+        {`${data[index].name} (${(percent * 100).toFixed(1)}%)`}
       </text>
     );
   };
 
+  const CustomTooltip = ({ active, payload }: any) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="glass-card p-2">
+          <p className="text-sm font-semibold">{`${payload[0].name}`}</p>
+          <p className="text-xs text-gray-300">{`Volatility: ${payload[0].value.toFixed(2)}%`}</p>
+        </div>
+      );
+    }
+    return null;
+  };
+
   return (
     <div className="w-full h-[400px] glass-card p-6">
+      <h3 className="text-lg font-semibold mb-4 text-center">Volatility Comparison</h3>
       <ResponsiveContainer width="100%" height="100%">
         <RechartsPieChart>
           <Pie
@@ -65,15 +98,7 @@ export const PieChart = ({
               <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
             ))}
           </Pie>
-          <Tooltip
-            contentStyle={{
-              backgroundColor: "#2D2A3D",
-              border: "none",
-              borderRadius: "8px",
-              padding: "12px",
-            }}
-            labelStyle={{ color: "#9ca3af" }}
-          />
+          <Tooltip content={<CustomTooltip />} />
           <Legend />
         </RechartsPieChart>
       </ResponsiveContainer>
