@@ -19,6 +19,7 @@ export interface CoinHistory {
   date?: string;
   circulatingSupply?: string;
   marketCap?: string;
+  volumeUsd24Hr?: string;  // Added this property
 }
 
 export const fetchTopCoins = async (): Promise<Coin[]> => {
@@ -47,6 +48,7 @@ export const fetchCoinHistory = async (
       ...item,
       date: new Date(item.time).toLocaleDateString(),
       marketCap: item.priceUsd * item.circulatingSupply,
+      volumeUsd24Hr: item.volumeUsd24Hr || "0", // Added this property mapping
     }));
   } catch (error) {
     toast.error(`Failed to fetch history for ${coinId}`);
