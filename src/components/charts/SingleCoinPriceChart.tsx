@@ -9,7 +9,7 @@ import {
 } from "recharts";
 import { CoinHistory } from "@/services/api";
 import { ArrowUpIcon, ArrowDownIcon } from "lucide-react";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 
 interface SingleCoinPriceChartProps {
@@ -29,29 +29,32 @@ export const SingleCoinPriceChart = ({
   const [hoveredPrice, setHoveredPrice] = useState<number | null>(null);
 
   const filterDataByTimeFrame = (data: CoinHistory[], frame: TimeFrame) => {
-    const now = new Date();
-    const timeFrames = {
+    const now = Date.now();
+    const timeFrameInDays = {
       "1w": 7,
       "1m": 30,
       "6m": 180
     };
     
-    const daysToSubtract = timeFrames[frame];
-    const startDate = new Date(now);
-    startDate.setDate(startDate.getDate() - daysToSubtract);
+    const daysInMilliseconds = timeFrameInDays[frame] * 24 * 60 * 60 * 1000;
+    const startTime = now - daysInMilliseconds;
     
     return data.filter(point => {
-      const pointDate = new Date(point.time);
-      return pointDate >= startDate && pointDate <= now;
+      const pointTime = new Date(point.time).getTime();
+      return pointTime >= startTime && pointTime <= now;
     });
   };
 
-  const filteredData = filterDataByTimeFrame(coinData, timeFrame);
+  const filteredData = useMemo(() => {
+    return filterDataByTimeFrame(coinData, timeFrame);
+  }, [coinData, timeFrame]);
   
-  const chartData = filteredData.map((point) => ({
-    time: new Date(point.time).toLocaleDateString(),
-    price: parseFloat(point.priceUsd),
-  }));
+  const chartData = useMemo(() => {
+    return filteredData.map((point) => ({
+      time: new Date(point.time).toLocaleDateString(),
+      price: parseFloat(point.priceUsd),
+    }));
+  }, [filteredData]);
 
   const calculatePercentageChange = (data: typeof chartData, days: number) => {
     if (data.length < 2) return 0;
@@ -62,12 +65,12 @@ export const SingleCoinPriceChart = ({
     return ((lastPrice - firstPrice) / firstPrice) * 100;
   };
 
-  const percentageChanges = {
+  const percentageChanges = useMemo(() => ({
     "1d": calculatePercentageChange(chartData, 1),
     "3d": calculatePercentageChange(chartData, 3),
     "1w": calculatePercentageChange(chartData, 7),
     "1m": calculatePercentageChange(chartData, 30),
-  };
+  }), [chartData]);
 
   const formatPrice = (value: number) => {
     if (value >= 1000000) return `$${(value / 1000000).toFixed(2)}M`;
@@ -112,6 +115,11 @@ export const SingleCoinPriceChart = ({
     }
     return null;
   };
+
+  // Add console logs to debug time frame changes
+  console.log('TimeFrame:', timeFrame);
+  console.log('Filtered Data Length:', filteredData.length);
+  console.log('Chart Data Length:', chartData.length);
 
   return (
     <div className="w-full h-[240px] glass-card p-4 hover:border-crypto-accent/50 transition-colors duration-300">
