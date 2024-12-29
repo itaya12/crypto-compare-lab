@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 const Index = () => {
   const [selectedCoins, setSelectedCoins] = useState<(Coin | null)[]>([null, null]);
   const [showComparison, setShowComparison] = useState(false);
+  const [additionalCoins, setAdditionalCoins] = useState<(Coin | null)[]>([]);
 
   const { data: coins = [] } = useQuery({
     queryKey: ["coins"],
@@ -50,23 +51,32 @@ const Index = () => {
   };
 
   const addCoin = () => {
-    setSelectedCoins([...selectedCoins, null]);
+    setAdditionalCoins([...additionalCoins, null]);
   };
 
   const removeCoin = (index: number) => {
-    if (selectedCoins.length <= 2) {
-      toast.error("Minimum two coins required for comparison");
-      return;
-    }
-    const newCoins = [...selectedCoins];
-    newCoins.splice(index, 1);
-    setSelectedCoins(newCoins);
+    const newAdditionalCoins = [...additionalCoins];
+    newAdditionalCoins.splice(index, 1);
+    setAdditionalCoins(newAdditionalCoins);
   };
 
-  const updateCoin = (index: number, coin: Coin) => {
-    const newCoins = [...selectedCoins];
-    newCoins[index] = coin;
-    setSelectedCoins(newCoins);
+  const updateCoin = (index: number, coin: Coin, isAdditional: boolean = false) => {
+    if (isAdditional) {
+      const newAdditionalCoins = [...additionalCoins];
+      newAdditionalCoins[index] = coin;
+      setAdditionalCoins(newAdditionalCoins);
+    } else {
+      const newSelectedCoins = [...selectedCoins];
+      newSelectedCoins[index] = coin;
+      setSelectedCoins(newSelectedCoins);
+    }
+  };
+
+  const handleCompare = () => {
+    const allCoins = [...selectedCoins, ...additionalCoins].filter(coin => coin !== null) as Coin[];
+    setSelectedCoins(allCoins);
+    setAdditionalCoins([]);
+    setShowComparison(true);
   };
 
   useEffect(() => {
@@ -105,26 +115,44 @@ const Index = () => {
                 onSelect={(coin) => updateCoin(index, coin)}
                 label={`Select Coin ${index + 1}`}
               />
-              {index >= 2 && (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="absolute -top-2 -right-2"
-                  onClick={() => removeCoin(index)}
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              )}
             </div>
           ))}
-          <Button
-            variant="outline"
-            className="h-full min-h-[100px] flex items-center justify-center gap-2"
-            onClick={addCoin}
-          >
-            <Plus className="h-4 w-4" />
-            Add Coin
-          </Button>
+          {additionalCoins.map((coin, index) => (
+            <div key={`additional-${index}`} className="relative">
+              <CoinSelector
+                coins={coins}
+                selectedCoin={coin}
+                onSelect={(coin) => updateCoin(index, coin, true)}
+                label={`Select Additional Coin ${index + 3}`}
+              />
+              <Button
+                variant="ghost"
+                size="icon"
+                className="absolute -top-2 -right-2"
+                onClick={() => removeCoin(index)}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+          ))}
+          <div className="flex gap-4">
+            <Button
+              variant="outline"
+              className="h-full min-h-[100px] flex-1 flex items-center justify-center gap-2"
+              onClick={addCoin}
+            >
+              <Plus className="h-4 w-4" />
+              Add Coin
+            </Button>
+            {additionalCoins.length > 0 && (
+              <Button
+                className="h-full min-h-[100px] flex-1 flex items-center justify-center gap-2"
+                onClick={handleCompare}
+              >
+                Compare All
+              </Button>
+            )}
+          </div>
         </div>
       </div>
 
