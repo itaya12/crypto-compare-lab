@@ -12,11 +12,12 @@ import { CoinHistory } from "@/services/api";
 import { PieChart } from "./charts/PieChart";
 import { TradingVolumePieChart } from "./charts/TradingVolumePieChart";
 import { RadarChart } from "./charts/RadarChart";
+import { AreaChart } from "./charts/AreaChart";
 
 interface ComparisonChartProps {
   coinsData: CoinHistory[][];
   coinSymbols: string[];
-  defaultChartType?: "line" | "pie" | "radar";
+  defaultChartType?: "line" | "pie" | "radar" | "area";
 }
 
 const CHART_COLORS = [
@@ -33,7 +34,7 @@ export const ComparisonChart = ({
   coinSymbols,
   defaultChartType = "line",
 }: ComparisonChartProps) => {
-  const [chartType, setChartType] = useState<"line" | "pie" | "radar">(defaultChartType);
+  const [chartType, setChartType] = useState<"line" | "pie" | "radar" | "area">(defaultChartType);
 
   useEffect(() => {
     setChartType(defaultChartType);
@@ -82,6 +83,13 @@ export const ComparisonChart = ({
       case "radar":
         return (
           <RadarChart
+            coinsData={coinsData}
+            coinSymbols={coinSymbols}
+          />
+        );
+      case "area":
+        return (
+          <AreaChart
             coinsData={coinsData}
             coinSymbols={coinSymbols}
           />

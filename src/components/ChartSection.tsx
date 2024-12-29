@@ -5,7 +5,7 @@ import { CorrelationHeatmap } from "./CorrelationHeatmap";
 interface ChartSectionProps {
   coinsHistory: CoinHistory[][];
   coinSymbols: string[];
-  chartTypes: readonly ("line" | "pie" | "radar")[];
+  chartTypes: readonly ("line" | "pie" | "radar" | "area")[];
 }
 
 export const ChartSection = ({ coinsHistory, coinSymbols, chartTypes }: ChartSectionProps) => {
