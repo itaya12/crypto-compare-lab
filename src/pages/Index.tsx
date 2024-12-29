@@ -1,12 +1,101 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { Coin, fetchTopCoins, fetchCoinHistory } from "@/services/api";
+import { CoinSelector } from "@/components/CoinSelector";
+import { ComparisonChart } from "@/components/ComparisonChart";
+import { CoinStats } from "@/components/CoinStats";
+import { Share2 } from "lucide-react";
+import { toast } from "sonner";
 
 const Index = () => {
+  const [selectedCoin1, setSelectedCoin1] = useState<Coin | null>(null);
+  const [selectedCoin2, setSelectedCoin2] = useState<Coin | null>(null);
+  const [showComparison, setShowComparison] = useState(false);
+
+  const { data: coins = [] } = useQuery({
+    queryKey: ["coins"],
+    queryFn: fetchTopCoins,
+  });
+
+  const { data: coin1History = [] } = useQuery({
+    queryKey: ["coinHistory", selectedCoin1?.id],
+    queryFn: () => fetchCoinHistory(selectedCoin1?.id || ""),
+    enabled: !!selectedCoin1 && showComparison,
+  });
+
+  const { data: coin2History = [] } = useQuery({
+    queryKey: ["coinHistory", selectedCoin2?.id],
+    queryFn: () => fetchCoinHistory(selectedCoin2?.id || ""),
+    enabled: !!selectedCoin2 && showComparison,
+  });
+
+  const handleShare = () => {
+    if (selectedCoin1 && selectedCoin2) {
+      const url = `${window.location.origin}?coin1=${selectedCoin1.id}&coin2=${selectedCoin2.id}`;
+      navigator.clipboard.writeText(url);
+      toast.success("Comparison link copied to clipboard!");
+    }
+  };
+
+  useEffect(() => {
+    if (selectedCoin1 && selectedCoin2) {
+      setShowComparison(true);
+    } else {
+      setShowComparison(false);
+    }
+  }, [selectedCoin1, selectedCoin2]);
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
-        <p className="text-xl text-gray-600">Start building your amazing project here!</p>
+    <div className="min-h-screen p-6 md:p-8 space-y-8 max-w-7xl mx-auto">
+      <div className="text-center space-y-4 animate-fade-in">
+        <h1 className="text-4xl font-bold">Crypto Comparison</h1>
+        <p className="text-gray-400">
+          Compare performance and statistics of different cryptocurrencies
+        </p>
       </div>
+
+      <div className="grid md:grid-cols-2 gap-6 animate-slide-up">
+        <CoinSelector
+          coins={coins}
+          selectedCoin={selectedCoin1}
+          onSelect={setSelectedCoin1}
+          label="Select First Coin"
+        />
+        <CoinSelector
+          coins={coins}
+          selectedCoin={selectedCoin2}
+          onSelect={setSelectedCoin2}
+          label="Select Second Coin"
+        />
+      </div>
+
+      {showComparison && (
+        <div className="space-y-6">
+          <div className="flex justify-end">
+            <button
+              onClick={handleShare}
+              className="glass-card px-4 py-2 flex items-center gap-2 hover:bg-white/5 transition-colors"
+            >
+              <Share2 className="w-4 h-4" />
+              Share Comparison
+            </button>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-6">
+            {selectedCoin1 && <CoinStats coin={selectedCoin1} />}
+            {selectedCoin2 && <CoinStats coin={selectedCoin2} />}
+          </div>
+
+          {selectedCoin1 && selectedCoin2 && (
+            <ComparisonChart
+              coin1Data={coin1History}
+              coin2Data={coin2History}
+              coin1Symbol={selectedCoin1.symbol}
+              coin2Symbol={selectedCoin2.symbol}
+            />
+          )}
+        </div>
+      )}
     </div>
   );
 };
