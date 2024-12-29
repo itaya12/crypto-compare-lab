@@ -119,8 +119,16 @@ export const ComparisonChart = ({
                     padding: "12px",
                   }}
                   labelStyle={{ color: "#9ca3af" }}
+                  cursor={{ strokeDasharray: "3 3" }}
+                  wrapperStyle={{ zIndex: 100 }}
+                  animationDuration={200}
                 />
-                <Legend />
+                <Legend
+                  wrapperStyle={{ paddingTop: "20px" }}
+                  onClick={(data) => {
+                    console.log("Legend clicked:", data);
+                  }}
+                />
                 {coinSymbols.map((symbol, index) => (
                   <Line
                     key={symbol}
@@ -128,7 +136,10 @@ export const ComparisonChart = ({
                     dataKey={symbol}
                     stroke={CHART_COLORS[index % CHART_COLORS.length]}
                     strokeWidth={2}
-                    dot={false}
+                    dot={{ r: 4, strokeWidth: 2 }}
+                    activeDot={{ r: 6, strokeWidth: 2 }}
+                    animationDuration={1500}
+                    animationBegin={index * 200}
                   />
                 ))}
               </LineChart>
