@@ -26,10 +26,6 @@ export const CoinSelector = ({
       coin.symbol.toLowerCase().includes(search.toLowerCase())
   );
 
-  const getCoinImageUrl = (symbol: string) => {
-    return `https://assets.coingecko.com/coins/images/1/large/${symbol.toLowerCase()}.png`;
-  };
-
   return (
     <div className="relative w-full">
       <label className="block text-sm font-medium mb-2 text-gray-200">
@@ -42,8 +38,10 @@ export const CoinSelector = ({
         {selectedCoin ? (
           <div className="flex items-center gap-3">
             <Avatar className="h-8 w-8">
-              <AvatarImage src={getCoinImageUrl(selectedCoin.symbol)} />
-              <AvatarFallback>{selectedCoin.symbol.slice(0, 2)}</AvatarFallback>
+              <AvatarImage src={selectedCoin.imageUrl} alt={selectedCoin.name} />
+              <AvatarFallback>
+                {selectedCoin.symbol.slice(0, 2).toUpperCase()}
+              </AvatarFallback>
             </Avatar>
             <div className="flex flex-col">
               <span className="text-lg font-semibold">{selectedCoin.symbol}</span>
@@ -80,8 +78,10 @@ export const CoinSelector = ({
                 >
                   <div className="flex items-center gap-3">
                     <Avatar className="h-6 w-6">
-                      <AvatarImage src={getCoinImageUrl(coin.symbol)} />
-                      <AvatarFallback>{coin.symbol.slice(0, 2)}</AvatarFallback>
+                      <AvatarImage src={coin.imageUrl} alt={coin.name} />
+                      <AvatarFallback>
+                        {coin.symbol.slice(0, 2).toUpperCase()}
+                      </AvatarFallback>
                     </Avatar>
                     <div className="flex flex-col">
                       <span className="text-sm font-semibold">{coin.symbol}</span>
