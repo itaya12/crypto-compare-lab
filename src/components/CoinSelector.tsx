@@ -2,7 +2,6 @@ import { useState } from "react";
 import { Coin } from "@/services/api";
 import { Search } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface CoinSelectorProps {
   coins: Coin[];
@@ -26,10 +25,6 @@ export const CoinSelector = ({
       coin.symbol.toLowerCase().includes(search.toLowerCase())
   );
 
-  const getCoinImageUrl = (symbol: string) => {
-    return `https://assets.coingecko.com/coins/images/1/large/${symbol.toLowerCase()}.png`;
-  };
-
   return (
     <div className="relative w-full">
       <label className="block text-sm font-medium mb-2 text-gray-200">
@@ -40,15 +35,9 @@ export const CoinSelector = ({
         onClick={() => setIsOpen(!isOpen)}
       >
         {selectedCoin ? (
-          <div className="flex items-center gap-3">
-            <Avatar className="h-8 w-8">
-              <AvatarImage src={getCoinImageUrl(selectedCoin.symbol)} />
-              <AvatarFallback>{selectedCoin.symbol.slice(0, 2)}</AvatarFallback>
-            </Avatar>
-            <div className="flex flex-col">
-              <span className="text-lg font-semibold">{selectedCoin.symbol}</span>
-              <span className="text-sm text-gray-400">{selectedCoin.name}</span>
-            </div>
+          <div className="flex items-center gap-2">
+            <span className="text-lg font-semibold">{selectedCoin.symbol}</span>
+            <span className="text-sm text-gray-400">{selectedCoin.name}</span>
           </div>
         ) : (
           <span className="text-gray-400">Select a coin</span>
@@ -78,15 +67,9 @@ export const CoinSelector = ({
                     setIsOpen(false);
                   }}
                 >
-                  <div className="flex items-center gap-3">
-                    <Avatar className="h-6 w-6">
-                      <AvatarImage src={getCoinImageUrl(coin.symbol)} />
-                      <AvatarFallback>{coin.symbol.slice(0, 2)}</AvatarFallback>
-                    </Avatar>
-                    <div className="flex flex-col">
-                      <span className="text-sm font-semibold">{coin.symbol}</span>
-                      <span className="text-xs text-gray-400">{coin.name}</span>
-                    </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-semibold">{coin.symbol}</span>
+                    <span className="text-xs text-gray-400">{coin.name}</span>
                   </div>
                   <span
                     className={`text-sm ${
