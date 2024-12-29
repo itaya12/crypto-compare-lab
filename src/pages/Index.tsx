@@ -13,7 +13,7 @@ import { format } from "date-fns";
 
 const Index = () => {
   const [selectedCoins, setSelectedCoins] = useState<(Coin | null)[]>([null, null, null]);
-  const [showComparison, setShowComparison] = useState(false);
+  const [showComparison, setShowComparison] = useState(true); // Changed to true by default
   const [additionalCoins, setAdditionalCoins] = useState<(Coin | null)[]>([]);
   const [startDate, setStartDate] = useState<Date>(new Date(Date.now() - 7 * 24 * 60 * 60 * 1000));
   const [endDate, setEndDate] = useState<Date>(new Date());
@@ -31,6 +31,7 @@ const Index = () => {
       
       if (bitcoin && ethereum && ripple) {
         setSelectedCoins([bitcoin, ethereum, ripple]);
+        setShowComparison(true); // Ensure comparison is shown when default coins are set
       }
     }
   }, [coins]);
@@ -51,8 +52,6 @@ const Index = () => {
   useEffect(() => {
     if (selectedCoins.length >= 2 && selectedCoins.every(coin => coin)) {
       setShowComparison(true);
-    } else {
-      setShowComparison(false);
     }
   }, [selectedCoins]);
 
