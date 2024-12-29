@@ -5,10 +5,11 @@ import { CorrelationHeatmap } from "./CorrelationHeatmap";
 interface ChartSectionProps {
   coinsHistory: CoinHistory[][];
   coinSymbols: string[];
-  chartTypes: readonly ("line" | "pie" | "radar" | "area")[];
 }
 
-export const ChartSection = ({ coinsHistory, coinSymbols, chartTypes }: ChartSectionProps) => {
+const CHART_TYPES = ["line", "area", "pie", "radar"] as const;
+
+export const ChartSection = ({ coinsHistory, coinSymbols }: ChartSectionProps) => {
   return (
     <div className="space-y-24">
       <div className="scroll-mt-8">
@@ -19,13 +20,16 @@ export const ChartSection = ({ coinsHistory, coinSymbols, chartTypes }: ChartSec
         />
       </div>
 
-      <div className="scroll-mt-8">
-        <ComparisonChart
-          coinsData={coinsHistory}
-          coinSymbols={coinSymbols}
-          defaultChartType={chartTypes[0]}
-        />
-      </div>
+      {CHART_TYPES.map((chartType) => (
+        <div key={chartType} className="scroll-mt-8" id={chartType}>
+          <h2 className="text-2xl font-bold mb-6 capitalize">{chartType} Chart</h2>
+          <ComparisonChart
+            coinsData={coinsHistory}
+            coinSymbols={coinSymbols}
+            defaultChartType={chartType}
+          />
+        </div>
+      ))}
     </div>
   );
 };

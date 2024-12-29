@@ -5,7 +5,6 @@ import { CoinSelector } from "@/components/CoinSelector";
 import { CoinStats } from "@/components/CoinStats";
 import { GeneralTableDescription } from "@/components/GeneralTableDescription";
 import { ChartSection } from "@/components/ChartSection";
-import { ChartTypeSelector } from "@/components/ChartTypeSelector";
 import { Share2, Plus, X, Calendar } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -19,7 +18,6 @@ const Index = () => {
   const [additionalCoins, setAdditionalCoins] = useState<(Coin | null)[]>([]);
   const [startDate, setStartDate] = useState<Date>(new Date(Date.now() - 7 * 24 * 60 * 60 * 1000));
   const [endDate, setEndDate] = useState<Date>(new Date());
-  const [selectedChartType, setSelectedChartType] = useState<"line" | "pie" | "radar" | "area">("line");
 
   const { data: coins = [] } = useQuery({
     queryKey: ["coins"],
@@ -103,13 +101,6 @@ const Index = () => {
           Compare performance and statistics of different cryptocurrencies
         </p>
       </div>
-
-      {showComparison && (
-        <ChartTypeSelector
-          selectedType={selectedChartType}
-          onSelect={setSelectedChartType}
-        />
-      )}
 
       <div className="space-y-4">
         <div className="flex justify-end gap-4">
@@ -226,7 +217,6 @@ const Index = () => {
               <ChartSection
                 coinsHistory={coinsHistory}
                 coinSymbols={selectedCoins.map(coin => coin?.symbol || "")}
-                chartTypes={[selectedChartType]}
               />
             </div>
           )}
