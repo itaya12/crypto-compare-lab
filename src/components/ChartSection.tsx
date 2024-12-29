@@ -36,14 +36,6 @@ export const ChartSection = ({ coinsHistory, coinSymbols }: ChartSectionProps) =
         </div>
       </div>
 
-      <div className="scroll-mt-8">
-        <h2 className="text-2xl font-bold mb-6">Correlation Analysis</h2>
-        <CorrelationHeatmap
-          coinsData={coinsHistory}
-          coinSymbols={coinSymbols}
-        />
-      </div>
-
       {CHART_TYPES.map((chartType) => (
         <div key={chartType} className="scroll-mt-8" id={chartType}>
           <h2 className="text-2xl font-bold mb-6 capitalize">{chartType} Chart</h2>
@@ -54,6 +46,14 @@ export const ChartSection = ({ coinsHistory, coinSymbols }: ChartSectionProps) =
           />
         </div>
       ))}
+
+      <div className="scroll-mt-8">
+        <h2 className="text-2xl font-bold mb-6">Correlation Analysis</h2>
+        <CorrelationHeatmap
+          coinsData={coinsHistory}
+          coinSymbols={coinSymbols}
+        />
+      </div>
     </div>
   );
 };
