@@ -114,8 +114,8 @@ export const SingleCoinPriceChart = ({
   };
 
   return (
-    <div className="w-full h-[240px] glass-card p-6 hover:border-crypto-accent/50 transition-colors duration-300">
-      <div className="flex items-center justify-between mb-4">
+    <div className="w-full h-[240px] glass-card p-4 hover:border-crypto-accent/50 transition-colors duration-300">
+      <div className="flex items-center justify-between mb-2">
         <div className="space-y-1">
           <h3 className="text-lg font-semibold">{coinSymbol} Price</h3>
           <p className="text-2xl font-bold">
@@ -134,7 +134,7 @@ export const SingleCoinPriceChart = ({
         </div>
       </div>
 
-      <div className="flex justify-end gap-2 mb-4">
+      <div className="flex justify-end gap-2 mb-2">
         {(["1w", "1m", "6m"] as TimeFrame[]).map((frame) => (
           <Button
             key={frame}
@@ -148,58 +148,62 @@ export const SingleCoinPriceChart = ({
         ))}
       </div>
 
-      <ResponsiveContainer width="100%" height="70%">
-        <LineChart 
-          data={chartData}
-          onMouseMove={(e: any) => {
-            if (e.activePayload) {
-              setHoveredPrice(e.activePayload[0].payload.price);
-            }
-          }}
-          onMouseLeave={() => setHoveredPrice(null)}
-        >
-          <defs>
-            <linearGradient id={`gradient-${coinSymbol}`} x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor={color} stopOpacity={0.3}/>
-              <stop offset="95%" stopColor={color} stopOpacity={0}/>
-            </linearGradient>
-          </defs>
-          <XAxis
-            dataKey="time"
-            stroke="#9ca3af"
-            fontSize={12}
-            tickLine={false}
-            axisLine={false}
-            tickFormatter={formatDate}
-            minTickGap={30}
-          />
-          <YAxis
-            stroke="#9ca3af"
-            fontSize={12}
-            tickLine={false}
-            axisLine={false}
-            tickFormatter={formatPrice}
-            domain={['auto', 'auto']}
-          />
-          <Tooltip
-            content={<CustomTooltip />}
-            cursor={{ stroke: color, strokeWidth: 1, strokeDasharray: '5 5' }}
-          />
-          <Line
-            type="monotone"
-            dataKey="price"
-            stroke={color}
-            strokeWidth={2}
-            dot={false}
-            activeDot={(props) => (
-              <Dot {...props} stroke={color} fill={color} strokeWidth={2} r={4} />
-            )}
-            fill={`url(#gradient-${coinSymbol})`}
-          />
-        </LineChart>
-      </ResponsiveContainer>
+      <div className="w-full h-[120px]">
+        <ResponsiveContainer width="100%" height="100%">
+          <LineChart 
+            data={chartData}
+            margin={{ top: 5, right: 5, left: 5, bottom: 5 }}
+            onMouseMove={(e: any) => {
+              if (e.activePayload) {
+                setHoveredPrice(e.activePayload[0].payload.price);
+              }
+            }}
+            onMouseLeave={() => setHoveredPrice(null)}
+          >
+            <defs>
+              <linearGradient id={`gradient-${coinSymbol}`} x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor={color} stopOpacity={0.3}/>
+                <stop offset="95%" stopColor={color} stopOpacity={0}/>
+              </linearGradient>
+            </defs>
+            <XAxis
+              dataKey="time"
+              stroke="#9ca3af"
+              fontSize={10}
+              tickLine={false}
+              axisLine={false}
+              tickFormatter={formatDate}
+              minTickGap={30}
+            />
+            <YAxis
+              stroke="#9ca3af"
+              fontSize={10}
+              tickLine={false}
+              axisLine={false}
+              tickFormatter={formatPrice}
+              domain={['auto', 'auto']}
+              width={60}
+            />
+            <Tooltip
+              content={<CustomTooltip />}
+              cursor={{ stroke: color, strokeWidth: 1, strokeDasharray: '5 5' }}
+            />
+            <Line
+              type="monotone"
+              dataKey="price"
+              stroke={color}
+              strokeWidth={2}
+              dot={false}
+              activeDot={(props) => (
+                <Dot {...props} stroke={color} fill={color} strokeWidth={2} r={4} />
+              )}
+              fill={`url(#gradient-${coinSymbol})`}
+            />
+          </LineChart>
+        </ResponsiveContainer>
+      </div>
 
-      <div className="flex justify-between mt-6 px-4">
+      <div className="flex justify-between mt-2 px-2">
         {Object.entries(percentageChanges).map(([label, change]) => (
           <PriceChangeIndicator key={label} change={change} label={label} />
         ))}
