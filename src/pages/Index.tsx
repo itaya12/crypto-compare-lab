@@ -10,7 +10,6 @@ import { Button } from "@/components/ui/button";
 
 const Index = () => {
   const [selectedCoins, setSelectedCoins] = useState<(Coin | null)[]>([null, null]);
-  const [showComparison, setShowComparison] = useState(false);
 
   const { data: coins = [] } = useQuery({
     queryKey: ["coins"],
@@ -80,6 +79,8 @@ const Index = () => {
       setShowComparison(false);
     }
   }, [selectedCoins]);
+
+  const [showComparison, setShowComparison] = useState(false);
 
   const chartTypes = [
     "line",
