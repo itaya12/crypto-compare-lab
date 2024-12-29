@@ -9,7 +9,6 @@ import {
   Legend,
 } from "recharts";
 import { CoinHistory } from "@/services/api";
-import { ChartTypeSelector } from "./ChartTypeSelector";
 import { CandlestickChart } from "./charts/CandlestickChart";
 import { BarChart } from "./charts/BarChart";
 import { PieChart } from "./charts/PieChart";
@@ -67,40 +66,55 @@ export const ComparisonChart = ({
   });
 
   const renderChart = () => {
+    // Ensure we have at least two coins' data
+    if (coinsData.length < 2 || !coinsData[0] || !coinsData[1]) {
+      return <div>Insufficient data for comparison</div>;
+    }
+
     switch (chartType) {
       case "candlestick":
         return (
           <CandlestickChart
-            coinsData={coinsData}
-            coinSymbols={coinSymbols}
+            coin1Data={coinsData[0]}
+            coin2Data={coinsData[1]}
+            coin1Symbol={coinSymbols[0]}
+            coin2Symbol={coinSymbols[1]}
           />
         );
       case "bar":
         return (
           <BarChart
-            coinsData={coinsData}
-            coinSymbols={coinSymbols}
+            coin1Data={coinsData[0]}
+            coin2Data={coinsData[1]}
+            coin1Symbol={coinSymbols[0]}
+            coin2Symbol={coinSymbols[1]}
           />
         );
       case "pie":
         return (
           <PieChart
-            coinsData={coinsData}
-            coinSymbols={coinSymbols}
+            coin1Data={coinsData[0]}
+            coin2Data={coinsData[1]}
+            coin1Symbol={coinSymbols[0]}
+            coin2Symbol={coinSymbols[1]}
           />
         );
       case "area":
         return (
           <AreaChart
-            coinsData={coinsData}
-            coinSymbols={coinSymbols}
+            coin1Data={coinsData[0]}
+            coin2Data={coinsData[1]}
+            coin1Symbol={coinSymbols[0]}
+            coin2Symbol={coinSymbols[1]}
           />
         );
       case "radar":
         return (
           <RadarChart
-            coinsData={coinsData}
-            coinSymbols={coinSymbols}
+            coin1Data={coinsData[0]}
+            coin2Data={coinsData[1]}
+            coin1Symbol={coinSymbols[0]}
+            coin2Symbol={coinSymbols[1]}
           />
         );
       default:
