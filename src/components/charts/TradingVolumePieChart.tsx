@@ -7,12 +7,14 @@ interface TradingVolumePieChartProps {
 }
 
 const CHART_COLORS = [
+  "#8B5CF6", // Vivid Purple
+  "#D946EF", // Magenta Pink
+  "#F97316", // Bright Orange
   "#0EA5E9", // Ocean Blue
-  "#33C3F0", // Sky Blue
-  "#1EAEDB", // Bright Blue
-  "#0FA0CE", // Deep Blue
-  "#8E9196", // Neutral Gray
-  "#C8C8C9", // Light Gray
+  "#10B981", // Emerald
+  "#F59E0B", // Amber
+  "#6366F1", // Indigo
+  "#EC4899", // Pink
 ];
 
 export const TradingVolumePieChart = ({
@@ -91,7 +93,12 @@ export const TradingVolumePieChart = ({
             dataKey="value"
           >
             {data.map((_, index) => (
-              <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
+              <Cell 
+                key={`cell-${index}`} 
+                fill={CHART_COLORS[index % CHART_COLORS.length]}
+                stroke="rgba(255,255,255,0.2)"
+                strokeWidth={1}
+              />
             ))}
           </Pie>
           <Tooltip content={<CustomTooltip />} />
